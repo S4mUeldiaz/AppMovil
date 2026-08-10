@@ -1,26 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TextInput, ToastAndroid, TouchableOpacity } from 'react-native';
 import RoundedButton from "../../components/RoundedButton"; 
 import { StackNavigationProp } from "@react-navigation/Stack";
-import { RootStackParamList } from '../../../App';
+import { RootStackParamList } from '../../../../App';
 import { useNavigation } from "@react-navigation/native";
+import useViewModel from './viewModel'
 
 export const HomeScreen = () => {
 
-const navigation =
-useNavigation <StackNavigationProp<RootStackParamList>>();
+    const {email, password, onChange } = useViewModel();
+
+    const navigation =
+    useNavigation <StackNavigationProp<RootStackParamList>>();
 
 return(
 
     <View style={styles.container}>
       <Image
-        source={require('./assets/chef.jpg')}
+        source={require('../../../../assets/chef.jpg')}
         style={styles.imageBackground}
         />
 
       <View style={styles.logoContainer}>
         <Image
-          source={require('./assets/logo.png')}
+          source={require('../../../../assets/logo.png')}
           style={styles.logoImage}
           />
         <Text style={styles.logoText}>FOOD APP</Text>
@@ -35,30 +38,31 @@ return(
         <View style={styles.formInput}>
           <Image
             style={styles.formIcon}
-            source={require('./assets/email.png')}
+            source={require('../../../../assets/email.png')}
             />
 
           <TextInput
             style={styles.formTextInput}
             placeholder="Correo Electrónico"
-            placeholderTextColor="#999"
             keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
+            value={email}
+            onChangeText={ text => onChange('email', text)}
             />
         </View>
 
         <View style={styles.formInput}>
           <Image
             style={styles.formIcon}
-            source={require('./assets/password.png')}
+            source={require('../../../../assets/password.png')}
             />
 
           <TextInput
             style={styles.formTextInput}
             placeholder="Contraseña"
-            placeholderTextColor="#999"
+            keyboardType="default"
             secureTextEntry={true}
+            value={password}
+            onChangeText={ text => onChange('password', text)}
             />
         </View>
 
