@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import { View, Text, StyleSheet, Image, TextInput, ToastAndroid, TouchableOpacity } from 'react-native';
 import RoundedButton from "../../components/RoundedButton"; 
 import { StackNavigationProp } from "@react-navigation/Stack";
 import { RootStackParamList } from '../../../../App';
-import { useNavigation } from "@react-navigation/native";
-import useViewModel from './viewModel'
+import useViewModel from './viewModel';
+import { CustomTextInput } from "../../components/CustomTextInput";
+import styles from './Styles';
+
 
 export const HomeScreen = () => {
 
@@ -35,40 +38,31 @@ return(
           INGRESAR
         </Text>
 
-        <View style={styles.formInput}>
-          <Image
-            style={styles.formIcon}
-            source={require('../../../../assets/email.png')}
-            />
-
-          <TextInput
-            style={styles.formTextInput}
-            placeholder="Correo Electrónico"
-            keyboardType="email-address"
+       <CustomTextInput
+            image= {require('../../../../assets/email.png')}
+            placeholder='Correo Electrónico'
+            keyboardType='email-address'
+            property='email'
+            onChangeText={onChange}
             value={email}
-            onChangeText={ text => onChange('email', text)}
-            />
-        </View>
+        />
 
-        <View style={styles.formInput}>
-          <Image
-            style={styles.formIcon}
-            source={require('../../../../assets/password.png')}
-            />
-
-          <TextInput
-            style={styles.formTextInput}
-            placeholder="Contraseña"
-            keyboardType="default"
-            secureTextEntry={true}
+        <CustomTextInput   
+            image= {require('../../../../assets/password.png')}
+            placeholder='Contraseña'
+            keyboardType='default'
+            property='password'
+            onChangeText={onChange}
             value={password}
-            onChangeText={ text => onChange('password', text)}
-            />
-        </View>
+            secureTextEntry= {true}
+        />    
 
         <View style={{marginTop: 30 }}>
-          <RoundedButton text = 'ENTRAR' onPress={() => ToastAndroid.show('HOLA',
-            ToastAndroid.SHORT)}/>
+            <RoundedButton text='ENTRAR' onPress={() => {
+                console.log('Email: ' + email);
+                console.log('Password: ' + password);
+            }} />
+
         </View>
 
         <View style={styles.formRegister}>
@@ -83,97 +77,6 @@ return(
       </View>
     </View>
   );
-}
-
-
-const styles = StyleSheet.create({
-    
-    container: {
-        flex: 1,
-        backgroundColor: '#000',
-    },
-    imageBackground: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        opacity: 0.7,
-    },
-    logoContainer: {
-        position: 'absolute',
-        top: '15%',
-        alignSelf: 'center',
-        alignItems: 'center',
-    },
-    logoImage: {
-        width: 100,
-        height: 100,
-        resizeMode: 'contain',
-    },
-    logoText: {
-        marginTop: 10,
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    form: {
-        position: 'absolute',
-        bottom: 0,
-        width: '100%',
-        height: '50%',
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 40,
-        borderTopRightRadius: 40,
-        paddingHorizontal: 30,
-        paddingTop: 35,
-    },
-    formTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 25,
-    },
-    formInput: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F5F5F5',
-        borderWidth: 1,
-        borderColor: '#DDD',
-        borderRadius: 15,
-        paddingHorizontal: 15,
-        height: 55,
-        marginBottom: 15,
-    },
-    formIcon: {
-        width: 24,
-        height: 24,
-        marginRight: 10,
-        tintColor: 'orange',
-        resizeMode: 'contain',
-    },
-    formTextInput: {
-        flex: 1,
-        fontSize: 16,
-        color: '#333',
-    },
-    RoundeButtonContainer: {
-        marginTop: 15,
-    },
-    formRegister: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 25,
-    },
-    registerNormal: {
-        fontSize: 16,
-        color: '#333',
-    },
-    formRegisterText: {
-        marginLeft: 5,
-        color: 'orange',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },  
-});
+};
 
 export default HomeScreen;
