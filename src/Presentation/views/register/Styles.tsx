@@ -18,7 +18,7 @@ const RegisterStyles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         width: '100%',
-        height: '50%',
+        height: '75%',
         backgroundColor: '#fff',
         borderTopLeftRadius: 40,
         borderTopRightRadius: 40,

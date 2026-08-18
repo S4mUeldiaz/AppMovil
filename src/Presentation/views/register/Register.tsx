@@ -1,14 +1,18 @@
-import React from 'react'
-import { View, Text, StyleSheet, Image, TextInput, ToastAndroid, Touchable, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react'
+import { View, Text, Image, StyleSheet, ScrollView, ToastAndroid } from 'react-native';
 import RoundedButton from "../../components/RoundedButton"; 
 import { CustomTextInput } from '../../components/CustomTextInput';
 import useViewModel from './viewModel';
 import Styles from './Styles';
 
 export const RegisterScreen = () => {
-  const { name, lastname, phone, email, password, confirmPassword, onChange, register } = useViewModel()
+  const { name, lastname, phone, email, password, confirmPassword, errorMessage, onChange, register } = useViewModel()
 
 
+  useEffect(() => {
+    if (errorMessage !== '')
+      ToastAndroid.show(errorMessage, ToastAndroid.LONG)
+  }, [errorMessage]);
 
     return (
      <View style={styles.container}>
