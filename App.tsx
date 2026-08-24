@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import { HomeScreen  } from './src/Presentation/views/home/home'
-import { RegisterScreen} from './src/Presentation/views/register/Register'
+import { HomeScreen  } from './src/Presentation/views/home/home';
+import { RegisterScreen} from './src/Presentation/views/register/Register';
+import { ProfileInfoScreen } from './src/Presentation/views/profile/info/ProfileInfo';
 
 
 export type RootStackParamList = {
   Homescreen: undefined;
   RegisterScreen: undefined;
+  ProfileInfoScreen: undefined;
 }
 
 
@@ -21,17 +23,14 @@ const App =  () => {
     }}>   
 
     <Stack.Screen
-      name= "Homescreen"
+      name="Homescreen"
       component={HomeScreen}
       />
 
       <Stack.Screen
-      name= "RegisterScreen"
-      component= {RegisterScreen}
-      options={{
-        headerShown: true,
-        title: 'Nuevo Usuario'
-      }} />
+      name="ProfileInfoScreen"
+      component={ProfileInfoScreen}
+      />
 
     </Stack.Navigator>
     </NavigationContainer> 

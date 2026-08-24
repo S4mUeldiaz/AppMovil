@@ -8,13 +8,15 @@ import useViewModel from './viewModel';
 import { CustomTextInput } from "../../components/CustomTextInput";
 import styles from './Styles';
 
+interface Props extends StackScreenProps<RootStackParamList, 'Homescreen'> {};
 
-export const HomeScreen = () => {
+
+export const HomeScreen = ({navigation, route}: Props) => {
 
     const {email, password, errorMessage, onChange, login } = useViewModel();
 
-    const navigation =
-    useNavigation <StackNavigationProp<RootStackParamList>>();
+ //   const navigation =
+ //   useNavigation <StackNavigationProp<RootStackParamList>>();
 
     useEffect(() => {
       if(errorMessage !== '') {
