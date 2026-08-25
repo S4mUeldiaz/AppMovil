@@ -1,22 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import React, { useEffect, useState } from 'react'
+import { useNavigation } from '@react-navigation/native';
 import { View, Text, StyleSheet, Image, TextInput, ToastAndroid, TouchableOpacity } from 'react-native';
 import RoundedButton from "../../components/RoundedButton"; 
-import { StackNavigationProp } from "@react-navigation/Stack";
+import { StackNavigationProp, StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from '../../../../App';
 import useViewModel from './viewModel';
 import { CustomTextInput } from "../../components/CustomTextInput";
 import styles from './Styles';
 
-interface Props extends StackScreenProps<RootStackParamList, 'Homescreen'> {};
-
+interface Props extends StackScreenProps<RootStackParamList,'HomeScreen'>{};
 
 export const HomeScreen = ({navigation, route}: Props) => {
 
-    const {email, password, errorMessage, onChange, login } = useViewModel();
-
- //   const navigation =
- //   useNavigation <StackNavigationProp<RootStackParamList>>();
+    const {email, password, errorMessage, user, onChange, login } = useViewModel();
 
     useEffect(() => {
       if(errorMessage !== '') {
@@ -24,7 +20,14 @@ export const HomeScreen = ({navigation, route}: Props) => {
       }
     }, [errorMessage]);
 
-return(
+
+    useEffect(() => {
+      if(user?.id !== null && user?.id !== undefined) {
+        navigation.replace('ProfileInfoScreen');
+      }
+    }, [user]);
+
+return (
 
     <View style={styles.container}>
       <Image
@@ -41,10 +44,7 @@ return(
       </View>
 
       <View style={styles.form}>
-
-        <Text style={styles.formTitle}>
-          INGRESAR
-        </Text>
+        <Text style={styles.formTitle}>INGRESAR</Text>
 
        <CustomTextInput
             image= {require('../../../../assets/email.png')}
@@ -76,12 +76,9 @@ return(
                 navigation.navigate('RegisterScreen')}>
                     <Text style={styles.formRegisterText}>Registrate</Text>
                 </TouchableOpacity>
-
         </View>
-
       </View>
     </View>
   );
-};
-
+}
 export default HomeScreen;

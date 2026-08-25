@@ -7,7 +7,7 @@ import { ProfileInfoScreen } from './src/Presentation/views/profile/info/Profile
 
 
 export type RootStackParamList = {
-  Homescreen: undefined;
+  HomeScreen: undefined;
   RegisterScreen: undefined;
   ProfileInfoScreen: undefined;
 }
@@ -23,12 +23,12 @@ const App =  () => {
     }}>   
 
     <Stack.Screen
-      name="Homescreen"
+      name='HomeScreen'
       component={HomeScreen}
       />
 
       <Stack.Screen
-      name="ProfileInfoScreen"
+      name='ProfileInfoScreen'
       component={ProfileInfoScreen}
       />
 
