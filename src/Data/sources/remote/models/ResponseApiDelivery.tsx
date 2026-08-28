@@ -1,5 +1,5 @@
 export interface ResponseApiDelivery {
-    succes: boolean;
+    success: boolean;
     message: string;
     data: any;
     error: any;

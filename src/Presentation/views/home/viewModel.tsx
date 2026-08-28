@@ -24,16 +24,17 @@ const HomeViewModel = () => {
     }
 
     const login = async () => {
-        if (isValidForm()) {
-            const response = await LoginAuthUseCase(values.email, values.password);
-            console.log('Respuesta: ' + JSON.stringify(response));
-            if(!response.succes){
-                setErrorMessage(response.message);
-            }else {
-                await SaveUserLocalUseCase(response.data);
-                getUserSession();
-            }
+        if (!isValidForm()) return false;
+
+        const response = await LoginAuthUseCase(values.email, values.password);
+        console.log('Respuesta: ' + JSON.stringify(response));
+        if(!response.success){
+            setErrorMessage(response.message);
+            return false;
         }
+
+        await SaveUserLocalUseCase(response.data);
+        return true;
     };
 
     const isValidForm = () => {

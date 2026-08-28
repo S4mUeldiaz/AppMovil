@@ -11,10 +11,15 @@ export class AuthRepositoryImpl implements AuthRepository {
 
             return Promise.resolve(response.data);
         } catch (error) {
-            let e = (error as AxiosError);
-            console.log('error' + JSON.stringify(e.response?.data) );
-            const apiError:ResponseApiDelivery = JSON.parse(JSON.stringify(e.response?.data))
-            return Promise.resolve(apiError);
+            const e = error as AxiosError<ResponseApiDelivery>;
+            const apiError = e.response?.data;
+            console.log('error ' + JSON.stringify(apiError ?? e.message));
+            return apiError ?? {
+                success: false,
+                message: 'No se pudo conectar con el servidor',
+                data: null,
+                error: e.message,
+            };
         }
     }
 

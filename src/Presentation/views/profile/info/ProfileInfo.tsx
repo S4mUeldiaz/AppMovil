@@ -1,4 +1,4 @@
-import { StackScreenProps } from '@react-navigation/Stack';
+import { StackScreenProps } from '@react-navigation/stack';
 import React from 'react';
 import { View, Text, Button } from 'react-native';
 import { RootStackParamList } from '../../../../../App';
@@ -13,9 +13,9 @@ export const ProfileInfoScreen = ({ navigation, route }: Props) => {
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Button
-            onPress={() => {
-                removeSession();
-                navigation.replace('Homescreen');
+            onPress={async () => {
+                await removeSession();
+                navigation.replace('HomeScreen');
             }}
             title='Cerrar Sesión'
             />

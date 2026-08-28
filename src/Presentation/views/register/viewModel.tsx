@@ -18,10 +18,11 @@ const RegisterViewModel = () => {
     }
 
     const register = async () => {
-        if(!isValidForm()) {
+        if (!isValidForm()) return;
+
         const response = await RegisterAuthUseCase(values);
-        console.log('Result' + JSON.stringify(response));
-        }
+        console.log('Result ' + JSON.stringify(response));
+        setErrorMessage(response?.message ?? 'No se pudo completar el registro');
     }
 
     const isValidForm = (): boolean => {
@@ -49,12 +50,12 @@ const RegisterViewModel = () => {
             setErrorMessage('La confirmacion de contraseña es requerida');
             return false;
         }
-        if(values.password === values.confirmPassword) {
-            return false;
-        }else {
+        if(values.password !== values.confirmPassword) {
             setErrorMessage('Las contraseñas no coinciden');
-            return true;
-        };
+            return false;
+        }
+
+        return true;
     }
 
     return {

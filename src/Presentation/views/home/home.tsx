@@ -14,6 +14,18 @@ export const HomeScreen = ({navigation, route}: Props) => {
 
     const {email, password, errorMessage, user, onChange, login } = useViewModel();
 
+    const handleLogin = async () => {
+      try {
+        const authenticated = await login();
+
+        if (authenticated) {
+          navigation.replace('ProfileInfoScreen');
+        }
+      } catch (error) {
+        console.log('Error en handleLogin: ' + JSON.stringify(error));
+      }
+    };
+
     useEffect(() => {
       if(errorMessage !== '') {
         ToastAndroid.show(errorMessage, ToastAndroid.LONG);
@@ -66,7 +78,7 @@ return (
         />    
 
         <View style={{marginTop: 30 }}>
-            <RoundedButton text='ENTRAR' onPress={() => login()}
+          <RoundedButton text='ENTRAR' onPress={handleLogin}
             />
         </View>
 
