@@ -17,9 +17,8 @@ export const HomeScreen = ({navigation, route}: Props) => {
     const handleLogin = async () => {
       try {
         const authenticated = await login();
-
         if (authenticated) {
-          navigation.replace('ProfileInfoScreen');
+          navigation.replace('ProductsScreen');
         }
       } catch (error) {
         console.log('Error en handleLogin: ' + JSON.stringify(error));
@@ -35,7 +34,7 @@ export const HomeScreen = ({navigation, route}: Props) => {
 
     useEffect(() => {
       if(user?.id !== null && user?.id !== undefined) {
-        navigation.replace('ProfileInfoScreen');
+        navigation.replace('ProductsScreen');
       }
     }, [user]);
 
