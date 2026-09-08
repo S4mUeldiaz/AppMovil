@@ -1,11 +1,11 @@
 import { StyleSheet } from "react-native";
-import { MyColors } from "../../theme/AppTheme";
+import { colors } from "../../theme/AppTheme";
 
 const ProductsStyles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: MyColors.background,
+        backgroundColor: colors.bg,
     },
     title: {
         fontSize: 24,
@@ -14,7 +14,7 @@ const ProductsStyles = StyleSheet.create({
         textAlign: 'center',
     },
     profileLink: {
-        color: MyColors.primary,
+        color: colors.primary,
         fontWeight: 'bold',
         textAlign: 'right',
         marginBottom: 10,
@@ -39,7 +39,7 @@ const ProductsStyles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     button: {
-        backgroundColor: MyColors.primary,
+        backgroundColor: colors.primary,
         padding: 10,
         borderRadius: 5,
         marginHorizontal: 5,
@@ -117,7 +117,7 @@ const ProductsStyles = StyleSheet.create({
     closeButton: {
         marginTop: 20,
         padding: 10,
-        backgroundColor: MyColors.primary,
+        backgroundColor: colors.primary,
         borderRadius: 5,
     },
     closeButtonText: {
