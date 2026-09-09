@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const ApiDelivery = axios.create({
-    baseURL: 'http://10.1.223.37:3001/api',
+    baseURL: 'http://10.0.2.2:3002/api',
     headers: {
         'Content-Type': 'application/json'
     }

@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ToastAndroid, Platform, Alert,} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  ToastAndroid,
+  Platform,
+  Alert,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
@@ -70,7 +80,7 @@ export function RegisterScreen() {
     setCargando(true);
     try {
       await registrar(form);
-      navigation.navigate('Login' as never);
+      navigation.navigate('LoginScreen' as never);
     } catch (err: any) {
       mostrarError(
         err?.response?.data?.error || err?.message || 'No se pudo completar el registro'
@@ -255,7 +265,7 @@ export function RegisterScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login' as never)}>
+          <TouchableOpacity onPress={() => navigation.navigate('LoginScreen' as never)}>
             <Text style={styles.footerLink}>Inicia sesión</Text>
           </TouchableOpacity>
         </View>
