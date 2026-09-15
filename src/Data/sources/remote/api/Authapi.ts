@@ -66,3 +66,7 @@ export async function obtenerUsuarioActual(): Promise<UsuarioSesion | null> {
   const raw = await AsyncStorage.getItem(USUARIO_KEY);
   return raw ? JSON.parse(raw) : null;
 }
+
+export async function guardarUsuarioActual(usuario: UsuarioSesion): Promise<void> {
+  await AsyncStorage.setItem(USUARIO_KEY, JSON.stringify(usuario));
+}
