@@ -12,11 +12,13 @@ import {
 } from 'react-native';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { login } from '../../../Data/sources/remote/api/Authapi';
-import { colors } from '../../theme/AppTheme';
+import { colors, fonts, spacing } from '../../theme/AppTheme';
 
 export function LoginScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
@@ -49,7 +51,10 @@ export function LoginScreen() {
   }
 
   return (
-    <ScrollView style={styles.wrapper} contentContainerStyle={styles.wrapperContent}>
+    <ScrollView
+      style={styles.wrapper}
+      contentContainerStyle={[styles.wrapperContent, { paddingTop: insets.top + spacing.lg }]}
+    >
       <View style={styles.topbar}>
         <TouchableOpacity
           style={styles.backButton}
@@ -139,11 +144,10 @@ export function LoginScreen() {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.background,
   },
   wrapperContent: {
     paddingHorizontal: 24,
-    paddingTop: 32,
     paddingBottom: 64,
     alignItems: 'center',
   },
@@ -159,13 +163,13 @@ const styles = StyleSheet.create({
   logo: {
     flex: 1,
     textAlign: 'center',
-    fontFamily: 'InriaSerif_400Regular',
+    fontFamily: fonts.display,
     fontSize: 26,
     letterSpacing: 6,
     color: colors.text,
   },
   title: {
-    fontFamily: 'InriaSerif_400Regular',
+    fontFamily: fonts.display,
     fontSize: 24,
     color: colors.text,
     textAlign: 'center',
@@ -174,7 +178,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   card: {
-    backgroundColor: colors.bgCard,
+    backgroundColor: colors.backgroundCard,
     borderRadius: 20,
     padding: 28,
     width: '100%',
@@ -189,12 +193,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.textMuted,
     marginBottom: 8,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: fonts.body,
   },
   group: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgInput,
+    backgroundColor: colors.backgroundInput,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 10,
@@ -208,7 +212,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingVertical: 12,
     fontSize: 14,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: fonts.body,
   },
   error: {
     color: colors.error,
@@ -227,11 +231,11 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: colors.bg,
+    color: colors.background,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 1,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: fonts.body,
   },
   forgot: {
     fontSize: 12,
@@ -250,7 +254,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: colors.bgInput,
+    backgroundColor: colors.backgroundInput,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 10,
@@ -261,7 +265,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     color: colors.text,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: fonts.body,
   },
   footer: {
     flexDirection: 'row',
@@ -271,13 +275,13 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 13,
     color: colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: fonts.body,
   },
   footerLink: {
     fontSize: 13,
     color: colors.text,
     fontWeight: '500',
     textDecorationLine: 'underline',
-    fontFamily: 'Inter_400Regular',
+    fontFamily: fonts.body,
   },
 });
