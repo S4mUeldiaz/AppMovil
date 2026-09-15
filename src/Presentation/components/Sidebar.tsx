@@ -10,9 +10,10 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCategorias, Categoria } from '../../Data/sources/remote/api/ProductosApi';
 import { logout, UsuarioSesion } from '../../Data/sources/remote/api/Authapi';
-import { colors } from '../theme/AppTheme';
+import { colors, spacing } from '../theme/AppTheme';
 
 const SIDEBAR_WIDTH = 280;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -26,6 +27,7 @@ interface SidebarProps {
 
 export function Sidebar({ abierto, onCerrar, usuario, onLogout }: SidebarProps) {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const translateX = useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -49,9 +51,42 @@ export function Sidebar({ abierto, onCerrar, usuario, onLogout }: SidebarProps) 
     ]).start();
   }, [abierto]);
 
-  function irACategoria(_id_categoria: number) {
+  function irACategoria(id_categoria: number) {
     onCerrar();
-    Alert.alert('Próximamente', 'El catálogo con filtro por categoría todavía está en construcción.');
+    (navigation.navigate as any)('CatalogoScreen', { categoria: id_categoria });
+  }
+
+  function irAInicio() {
+    onCerrar();
+    navigation.navigate('HomeScreen' as never);
+  }
+
+  function irACatalogo() {
+    onCerrar();
+    (navigation.navigate as any)('CatalogoScreen');
+  }
+
+  function irACarrito() {
+    onCerrar();
+    navigation.navigate('CarritoScreen' as never);
+  }
+
+  function irAFavoritos() {
+    onCerrar();
+    if (!usuario) {
+      navigation.navigate('LoginScreen' as never);
+      return;
+    }
+    navigation.navigate('FavoritosScreen' as never);
+  }
+
+  function irAPedidos() {
+    onCerrar();
+    if (!usuario) {
+      navigation.navigate('LoginScreen' as never);
+      return;
+    }
+    navigation.navigate('PedidosScreen' as never);
   }
 
   async function handleLogout() {
@@ -69,12 +104,32 @@ export function Sidebar({ abierto, onCerrar, usuario, onLogout }: SidebarProps) 
         <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onCerrar} />
       </Animated.View>
 
-      <Animated.View style={[styles.sidebar, { transform: [{ translateX }] }]}>
+      <Animated.View
+        style={[styles.sidebar, { paddingTop: insets.top + spacing.xl, transform: [{ translateX }] }]}
+      >
         <TouchableOpacity style={styles.closeBtn} onPress={onCerrar}>
           <Feather name="x" size={22} color={colors.text} />
         </TouchableOpacity>
 
         <View style={styles.nav}>
+          <TouchableOpacity style={styles.link} onPress={irAInicio}>
+            <Text style={styles.linkText}>Inicio</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.link} onPress={irACatalogo}>
+            <Text style={styles.linkText}>Catálogo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.link} onPress={irACarrito}>
+            <Text style={styles.linkText}>Carrito</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.link} onPress={irAFavoritos}>
+            <Text style={styles.linkText}>Favoritos</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.link} onPress={irAPedidos}>
+            <Text style={styles.linkText}>Mis pedidos</Text>
+          </TouchableOpacity>
+
+          <View style={styles.navDivider} />
+
           {categorias.map((c) => (
             <TouchableOpacity
               key={c.id_categoria}
@@ -92,7 +147,7 @@ export function Sidebar({ abierto, onCerrar, usuario, onLogout }: SidebarProps) 
               <TouchableOpacity
                 onPress={() => {
                   onCerrar();
-                  navigation.navigate('ProfileInfoScreen' as never);
+                  navigation.navigate('PerfilScreen' as never);
                 }}
               >
                 <Text style={styles.footerLink}>Mi perfil</Text>
@@ -145,12 +200,11 @@ const styles = StyleSheet.create({
     left: 0,
     width: SIDEBAR_WIDTH,
     height: SCREEN_HEIGHT,
-    backgroundColor: colors.bgCard,
+    backgroundColor: colors.backgroundCard,
     borderRightWidth: 1,
     borderRightColor: colors.border,
     zIndex: 300,
     padding: 24,
-    paddingTop: 48,
   },
   closeBtn: {
     alignSelf: 'flex-start',
@@ -168,6 +222,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
+  },
+  navDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 12,
   },
   footer: {
     borderTopWidth: 1,
