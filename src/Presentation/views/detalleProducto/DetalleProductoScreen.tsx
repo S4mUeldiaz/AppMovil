@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   Image,
   ScrollView,
   TouchableOpacity,
+  Animated,
   StyleSheet,
   Alert,
   Dimensions,
@@ -21,6 +22,8 @@ import { agregarItem as agregarItemCarrito } from '../../../Data/sources/local/C
 import { obtenerImagenPrincipal } from '../../utils/imagenes';
 import { getColorHex } from '../../utils/colores';
 import { colors, fonts, radius, spacing } from '../../theme/AppTheme';
+import { AgregarCarritoModal, ItemAgregado } from '../../components/AgregarCarritoModal';
+import { AnimatedHeartButton } from '../../components/AnimatedHeartButton';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -40,6 +43,8 @@ export function DetalleProductoScreen() {
   const [imagenIndex, setImagenIndex] = useState(0);
   const [esFavorito, setEsFavorito] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const [confirmacion, setConfirmacion] = useState<ItemAgregado | null>(null);
+  const agregarBtnScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     let activo = true;
@@ -119,6 +124,7 @@ export function DetalleProductoScreen() {
     }
     if (cantidad < 1 || cantidad > stockSelec.stock_actual) return;
 
+    const imagen = obtenerImagenPrincipal(producto.imagenes_producto);
     await agregarItemCarrito(
       {
         id_stock: stockSelec.id_stock,
@@ -127,11 +133,15 @@ export function DetalleProductoScreen() {
         precio: Number(producto.precio),
         color: colorSelec,
         talla: tallaSelec,
-        imagen: obtenerImagenPrincipal(producto.imagenes_producto),
+        imagen,
       },
       cantidad
     );
-    Alert.alert('Listo', 'Producto añadido al carrito.');
+    Animated.sequence([
+      Animated.timing(agregarBtnScale, { toValue: 0.94, duration: 90, useNativeDriver: true }),
+      Animated.spring(agregarBtnScale, { toValue: 1, friction: 3, tension: 200, useNativeDriver: true }),
+    ]).start();
+    setConfirmacion({ imagen, nombre: producto.nombre, color: colorSelec, talla: tallaSelec, cantidad });
   }
 
   if (cargando || !producto) {
@@ -245,14 +255,16 @@ export function DetalleProductoScreen() {
           </View>
         )}
 
-        <TouchableOpacity
-          style={[styles.agregarBtn, (!stockSelec || agotado) && styles.agregarBtnDisabled]}
-          onPress={agregarAlCarrito}
-          disabled={!stockSelec || agotado}
-        >
-          <Feather name="shopping-bag" size={16} color={colors.background} />
-          <Text style={styles.agregarBtnText}>Añadir al carrito</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: agregarBtnScale }] }}>
+          <TouchableOpacity
+            style={[styles.agregarBtn, (!stockSelec || agotado) && styles.agregarBtnDisabled]}
+            onPress={agregarAlCarrito}
+            disabled={!stockSelec || agotado}
+          >
+            <Feather name="shopping-bag" size={16} color={colors.background} />
+            <Text style={styles.agregarBtnText}>Añadir al carrito</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
       </ScrollView>
 
@@ -260,10 +272,23 @@ export function DetalleProductoScreen() {
         <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()}>
           <Feather name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.headerBtn, esFavorito && styles.favBtnActive]} onPress={toggleFavorito}>
-          <Feather name="heart" size={18} color={esFavorito ? colors.background : colors.text} />
-        </TouchableOpacity>
+        <AnimatedHeartButton
+          style={[styles.headerBtn, esFavorito && styles.favBtnActive]}
+          activo={esFavorito}
+          onPress={toggleFavorito}
+          size={18}
+          colorInactivo={colors.text}
+        />
       </View>
+
+      <AgregarCarritoModal
+        item={confirmacion}
+        onClose={() => setConfirmacion(null)}
+        onIrCarrito={() => {
+          setConfirmacion(null);
+          (navigation as any).navigate('MainTabs', { screen: 'CarritoScreen' });
+        }}
+      />
     </View>
   );
 }

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,17 +18,48 @@ export function TopNavbar({ onAbrirMenu, titulo, usuario }: TopNavbarProps) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const modoSaludo = usuario !== undefined;
+  const [buscando, setBuscando] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const inputRef = useRef<TextInput>(null);
 
-  function irABuscar() {
-    (navigation.navigate as any)('CatalogoScreen');
+  function abrirBusqueda() {
+    setBuscando(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
   }
 
-  function irAPerfil() {
-    if (!usuario) {
-      navigation.navigate('LoginScreen' as never);
-      return;
-    }
-    navigation.navigate('PerfilScreen' as never);
+  function cerrarBusqueda() {
+    setBuscando(false);
+    setBusqueda('');
+  }
+
+  function buscar() {
+    const query = busqueda.trim();
+    if (!query) return;
+    (navigation.navigate as any)('CatalogoScreen', { busqueda: query });
+    cerrarBusqueda();
+  }
+
+  if (buscando) {
+    return (
+      <View style={[styles.wrapper, { paddingTop: insets.top + spacing.sm }]}>
+        <View style={styles.searchBar}>
+          <Feather name="search" size={18} color={colors.textMuted} />
+          <TextInput
+            ref={inputRef}
+            style={styles.searchInput}
+            placeholder="Buscar productos..."
+            placeholderTextColor={colors.textMuted}
+            value={busqueda}
+            onChangeText={setBusqueda}
+            onSubmitEditing={buscar}
+            returnKeyType="search"
+          />
+        </View>
+        <TouchableOpacity style={styles.iconBtn} onPress={cerrarBusqueda}>
+          <Feather name="x" size={20} color={colors.text} />
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   return (
@@ -50,11 +81,8 @@ export function TopNavbar({ onAbrirMenu, titulo, usuario }: TopNavbarProps) {
       </View>
 
       <View style={styles.acciones}>
-        <TouchableOpacity style={styles.iconBtn} onPress={irABuscar}>
+        <TouchableOpacity style={styles.iconBtn} onPress={abrirBusqueda}>
           <Feather name="search" size={20} color={colors.text} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn} onPress={irAPerfil}>
-          <Feather name="user" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
     </View>
@@ -75,4 +103,18 @@ const styles = StyleSheet.create({
   saludo: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: colors.text },
   titulo: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
   acciones: { flexDirection: 'row', gap: spacing.sm },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.backgroundInput,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 50,
+    paddingHorizontal: spacing.lg,
+    height: 40,
+    marginRight: spacing.sm,
+  },
+  searchInput: { flex: 1, color: colors.text, fontFamily: fonts.body, fontSize: 14, padding: 0 },
 });

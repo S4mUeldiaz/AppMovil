@@ -56,30 +56,6 @@ export function Sidebar({ abierto, onCerrar, usuario, onLogout }: SidebarProps) 
     (navigation.navigate as any)('CatalogoScreen', { categoria: id_categoria });
   }
 
-  function irAInicio() {
-    onCerrar();
-    navigation.navigate('HomeScreen' as never);
-  }
-
-  function irACatalogo() {
-    onCerrar();
-    (navigation.navigate as any)('CatalogoScreen');
-  }
-
-  function irACarrito() {
-    onCerrar();
-    navigation.navigate('CarritoScreen' as never);
-  }
-
-  function irAFavoritos() {
-    onCerrar();
-    if (!usuario) {
-      navigation.navigate('LoginScreen' as never);
-      return;
-    }
-    navigation.navigate('FavoritosScreen' as never);
-  }
-
   function irAPedidos() {
     onCerrar();
     if (!usuario) {
@@ -112,18 +88,6 @@ export function Sidebar({ abierto, onCerrar, usuario, onLogout }: SidebarProps) 
         </TouchableOpacity>
 
         <View style={styles.nav}>
-          <TouchableOpacity style={styles.link} onPress={irAInicio}>
-            <Text style={styles.linkText}>Inicio</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.link} onPress={irACatalogo}>
-            <Text style={styles.linkText}>Catálogo</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.link} onPress={irACarrito}>
-            <Text style={styles.linkText}>Carrito</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.link} onPress={irAFavoritos}>
-            <Text style={styles.linkText}>Favoritos</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.link} onPress={irAPedidos}>
             <Text style={styles.linkText}>Mis pedidos</Text>
           </TouchableOpacity>
@@ -144,14 +108,6 @@ export function Sidebar({ abierto, onCerrar, usuario, onLogout }: SidebarProps) 
         <View style={styles.footer}>
           {usuario ? (
             <>
-              <TouchableOpacity
-                onPress={() => {
-                  onCerrar();
-                  navigation.navigate('PerfilScreen' as never);
-                }}
-              >
-                <Text style={styles.footerLink}>Mi perfil</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
                 <Feather name="log-out" size={14} color={colors.primary} />
                 <Text style={styles.logoutText}>Cerrar sesión</Text>
