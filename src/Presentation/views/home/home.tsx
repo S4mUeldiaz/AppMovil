@@ -18,11 +18,15 @@ import { getProductos, getCategorias, Producto, Categoria } from '../../../Data/
 import { getFavoritos, agregarFavorito, eliminarFavorito } from '../../../Data/sources/remote/api/FavoritosApi';
 import { obtenerCarrito } from '../../../Data/sources/local/CarritoStorage';
 import { obtenerImagenPrincipal } from '../../utils/imagenes';
-import { colors, fonts, spacing, radius } from '../../theme/AppTheme';
+import { esProductoNuevo } from '../../utils/producto';
+import { colors, fonts, spacing, radius, shadow } from '../../theme/AppTheme';
 import { Sidebar } from '../../components/Sidebar';
 import { Footer } from '../../components/Footer';
 import { QuickViewModal } from '../../components/QuickViewModal';
 import { TopNavbar } from '../../components/TopNavbar';
+import { AgregarCarritoModal, ItemAgregado } from '../../components/AgregarCarritoModal';
+import { AnimatedHeartButton } from '../../components/AnimatedHeartButton';
+import { BadgeAcento } from '../../components/BadgeAcento';
 
 const HERO_SCROLL_RANGE = 240;
 const MAS_VENDIDOS_COUNT = 8;
@@ -59,6 +63,7 @@ export function HomeScreen() {
   const [errorCarga, setErrorCarga] = useState(false);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
+  const [confirmacion, setConfirmacion] = useState<ItemAgregado | null>(null);
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -139,9 +144,11 @@ export function HomeScreen() {
   const heroScale = scrollY.interpolate({ inputRange: [0, HERO_SCROLL_RANGE], outputRange: [1, 0.6], extrapolate: 'clamp' });
   const heroTranslateY = scrollY.interpolate({ inputRange: [0, HERO_SCROLL_RANGE], outputRange: [0, -30], extrapolate: 'clamp' });
 
-  function renderProducto(p: Producto, ancho: number) {
+  function renderProducto(p: Producto, ancho: number, esMasVendido: boolean = false) {
     const esFavorito = favoritos.includes(p.id_producto);
     const imagen = obtenerImagenPrincipal(p.imagenes_producto);
+    // Nunca más de un acento ámbar por card: "más vendido" tiene prioridad sobre "nuevo".
+    const esNuevo = !esMasVendido && esProductoNuevo(p.fecha_creacion);
 
     return (
       <TouchableOpacity
@@ -150,44 +157,48 @@ export function HomeScreen() {
         activeOpacity={0.85}
         onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
       >
-        <View style={styles.cardImgWrap}>
-          {imagen ? (
-            <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
-          ) : (
-            <View style={styles.cardImgPlaceholder}>
-              <Feather name="image" size={28} color={colors.textMuted} />
-            </View>
-          )}
-          <TouchableOpacity
-            style={[styles.favBtn, esFavorito && styles.favBtnActive]}
-            onPress={() => toggleFavorito(p.id_producto)}
-          >
-            <Feather name="heart" size={16} color={esFavorito ? colors.background : colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickViewBtn} onPress={() => setQuickViewId(p.id_producto)}>
-            <Feather name="eye" size={14} color={colors.text} />
-            <Text style={styles.quickViewText}>Vista rápida</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardCategoria} numberOfLines={1}>
-            {p.categorias?.nombre_categoria ?? ''}
-          </Text>
-          <Text style={styles.cardNombre} numberOfLines={1}>
-            {p.nombre}
-          </Text>
-          <Text style={styles.cardMarca} numberOfLines={1}>
-            {p.marca}
-          </Text>
-          <View style={styles.cardFooter}>
-            <Text style={styles.cardPrecio}>${Number(p.precio).toLocaleString()}</Text>
-            <TouchableOpacity
-              style={styles.cardBtn}
-              onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
-            >
-              <Feather name="shopping-bag" size={12} color={colors.background} />
-              <Text style={styles.cardBtnText}>Ver</Text>
+        <View style={styles.cardBody}>
+          <View style={styles.cardImgWrap}>
+            {imagen ? (
+              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
+            ) : (
+              <View style={styles.cardImgPlaceholder}>
+                <Feather name="image" size={28} color={colors.textMuted} />
+              </View>
+            )}
+            {esMasVendido && <BadgeAcento texto="Más vendido" style={styles.cardBadge} />}
+            {esNuevo && <BadgeAcento texto="Nuevo" style={styles.cardBadge} />}
+            <AnimatedHeartButton
+              style={[styles.favBtn, esFavorito && styles.favBtnActive]}
+              activo={esFavorito}
+              onPress={() => toggleFavorito(p.id_producto)}
+              size={16}
+            />
+            <TouchableOpacity style={styles.quickViewBtn} onPress={() => setQuickViewId(p.id_producto)}>
+              <Feather name="eye" size={14} color={colors.text} />
+              <Text style={styles.quickViewText}>Vista rápida</Text>
             </TouchableOpacity>
+          </View>
+          <View style={styles.cardInfo}>
+            <Text style={styles.cardCategoria} numberOfLines={1}>
+              {p.categorias?.nombre_categoria ?? ''}
+            </Text>
+            <Text style={styles.cardNombre} numberOfLines={1}>
+              {p.nombre}
+            </Text>
+            <Text style={styles.cardMarca} numberOfLines={1}>
+              {p.marca}
+            </Text>
+            <View style={styles.cardFooter}>
+              <Text style={styles.cardPrecio}>${Number(p.precio).toLocaleString()}</Text>
+              <TouchableOpacity
+                style={styles.cardBtn}
+                onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
+              >
+                <Feather name="shopping-bag" size={12} color={colors.background} />
+                <Text style={styles.cardBtnText}>Ver</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -236,7 +247,8 @@ export function HomeScreen() {
         {/* CATEGORÍAS */}
         {categorias.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Categorías</Text>
+            <View style={styles.sectionDivider} />
+            <Text style={styles.sectionTitleCompacta}>Categorías</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriasRow}>
               {categorias.map((c) => (
                 <TouchableOpacity
@@ -259,14 +271,16 @@ export function HomeScreen() {
         {/* MÁS VENDIDOS */}
         {!cargando && masVendidos.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Más vendidos</Text>
+            <View style={styles.sectionDivider} />
+            <Text style={styles.sectionTitleDestacada}>Más vendidos</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalRow}>
-              {masVendidos.map((p) => renderProducto(p, 150))}
+              {masVendidos.map((p) => renderProducto(p, 150, true))}
             </ScrollView>
           </>
         )}
 
         {/* TODOS LOS PRODUCTOS */}
+        <View style={styles.sectionDivider} />
         <Text style={styles.sectionTitle}>Todos los productos</Text>
         {cargando ? (
           <View style={styles.grid}>
@@ -289,7 +303,16 @@ export function HomeScreen() {
         <Footer />
       </AnimatedScrollView>
 
-      <QuickViewModal idProducto={quickViewId} onClose={() => setQuickViewId(null)} />
+      <QuickViewModal idProducto={quickViewId} onClose={() => setQuickViewId(null)} onAgregado={setConfirmacion} />
+
+      <AgregarCarritoModal
+        item={confirmacion}
+        onClose={() => setConfirmacion(null)}
+        onIrCarrito={() => {
+          setConfirmacion(null);
+          (navigation as any).navigate('MainTabs', { screen: 'CarritoScreen' });
+        }}
+      />
 
       <Sidebar
         abierto={sidebarAbierto}
@@ -350,12 +373,36 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   bannerTexto: { color: colors.background, fontFamily: fonts.bodySemiBold, fontSize: 13 },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: 24,
+    marginTop: spacing.xl,
+  },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.displayBold,
+    fontSize: 22,
     color: colors.text,
     marginTop: spacing.xxl,
     marginBottom: spacing.lg,
+    paddingHorizontal: 24,
+  },
+  // "Categorías": sección utilitaria — menos aire alrededor.
+  sectionTitleCompacta: {
+    fontFamily: fonts.displayBold,
+    fontSize: 18,
+    color: colors.text,
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+    paddingHorizontal: 24,
+  },
+  // "Más vendidos": sección destacada — más aire y mayor tamaño.
+  sectionTitleDestacada: {
+    fontFamily: fonts.displayBold,
+    fontSize: 24,
+    color: colors.text,
+    marginTop: spacing.xxxl,
+    marginBottom: spacing.xl,
     paddingHorizontal: 24,
   },
   categoriasRow: { paddingHorizontal: 24, gap: spacing.lg },
@@ -393,11 +440,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
-    overflow: 'hidden',
+    ...shadow.card,
   },
+  // Recorta imagen/info a las esquinas redondeadas; separado de `card` para que
+  // la sombra (que overflow:hidden recortaría en iOS) sí se vea.
+  cardBody: { borderRadius: 12, overflow: 'hidden' },
   cardImgWrap: { height: 160, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' },
   cardImg: { width: '80%', height: '80%' },
   cardImgPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+  cardBadge: { position: 'absolute', top: 8, left: 8 },
   favBtn: {
     position: 'absolute',
     top: 8,

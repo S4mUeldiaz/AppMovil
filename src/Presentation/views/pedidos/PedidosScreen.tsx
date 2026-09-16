@@ -117,7 +117,10 @@ export function PedidosScreen() {
         <View style={styles.emptyState}>
           <Feather name="package" size={32} color={colors.textMuted} />
           <Text style={styles.emptyTitle}>No tienes pedidos aún</Text>
-          <TouchableOpacity style={styles.emptyBtn} onPress={() => navigation.navigate('HomeScreen' as never)}>
+          <TouchableOpacity
+            style={styles.emptyBtn}
+            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'HomeScreen' })}
+          >
             <Text style={styles.emptyBtnText}>Ver catálogo</Text>
           </TouchableOpacity>
         </View>

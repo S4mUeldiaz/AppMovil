@@ -52,6 +52,18 @@ export const spacing = {
   xxxl: 32,
 };
 
-export const theme = { colors, fonts, radius, spacing };
+// Elevación sutil para cards sobre el fondo negro — casi imperceptible, no es
+// un efecto Material Design genérico. shadowColor neutro (negro), no agrega paleta.
+export const shadow = {
+  card: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+};
+
+export const theme = { colors, fonts, radius, spacing, shadow };
 
 export default theme;

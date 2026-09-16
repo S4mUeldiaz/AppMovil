@@ -7,7 +7,8 @@ import { getFavoritos, eliminarFavorito, Favorito } from '../../../Data/sources/
 import { obtenerImagenPrincipal } from '../../utils/imagenes';
 import { Sidebar } from '../../components/Sidebar';
 import { useSidebar } from '../../hooks/useSidebar';
-import { colors, fonts, spacing } from '../../theme/AppTheme';
+import { AnimatedHeartButton } from '../../components/AnimatedHeartButton';
+import { colors, fonts, spacing, shadow } from '../../theme/AppTheme';
 
 const SKELETON_COUNT = 4;
 
@@ -59,21 +60,26 @@ export function FavoritosScreen() {
 
     return (
       <View style={styles.card}>
-        <View style={styles.cardImgWrap}>
-          {imagen ? (
-            <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
-          ) : (
-            <Feather name="image" size={24} color={colors.textMuted} />
-          )}
-          <TouchableOpacity style={styles.favBtn} onPress={() => quitarFavorito(p.id_producto)}>
-            <Feather name="heart" size={14} color={colors.background} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardNombre} numberOfLines={1}>
-            {p.nombre}
-          </Text>
-          <Text style={styles.cardPrecio}>${Number(p.precio).toLocaleString()}</Text>
+        <View style={styles.cardBody}>
+          <View style={styles.cardImgWrap}>
+            {imagen ? (
+              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
+            ) : (
+              <Feather name="image" size={24} color={colors.textMuted} />
+            )}
+            <AnimatedHeartButton
+              style={styles.favBtn}
+              activo
+              onPress={() => quitarFavorito(p.id_producto)}
+              size={14}
+            />
+          </View>
+          <View style={styles.cardInfo}>
+            <Text style={styles.cardNombre} numberOfLines={1}>
+              {p.nombre}
+            </Text>
+            <Text style={styles.cardPrecio}>${Number(p.precio).toLocaleString()}</Text>
+          </View>
         </View>
       </View>
     );
@@ -148,8 +154,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
-    overflow: 'hidden',
+    ...shadow.card,
   },
+  cardBody: { borderRadius: 12, overflow: 'hidden' },
   cardImgWrap: {
     height: 140,
     backgroundColor: '#111',

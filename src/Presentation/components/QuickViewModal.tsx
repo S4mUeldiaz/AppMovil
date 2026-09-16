@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, Modal, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, Animated, Modal, StyleSheet, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { getProductoPorId, Producto } from '../../Data/sources/remote/api/ProductosApi';
@@ -12,15 +12,18 @@ import { colors, fonts, radius, spacing } from '../theme/AppTheme';
 interface QuickViewModalProps {
   idProducto: number | null;
   onClose: () => void;
+  /** Se llama tras añadir al carrito con éxito, antes de cerrar el quick view. */
+  onAgregado?: (item: { imagen: string | null; nombre: string; color: string; talla: string; cantidad: number }) => void;
 }
 
-export function QuickViewModal({ idProducto, onClose }: QuickViewModalProps) {
+export function QuickViewModal({ idProducto, onClose, onAgregado }: QuickViewModalProps) {
   const navigation = useNavigation();
   const [producto, setProducto] = useState<Producto | null>(null);
   const [stockVariantes, setStockVariantes] = useState<Stock[]>([]);
   const [colorSelec, setColorSelec] = useState<string | null>(null);
   const [tallaSelec, setTallaSelec] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
+  const cartBtnScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (idProducto == null) {
@@ -110,28 +113,36 @@ export function QuickViewModal({ idProducto, onClose }: QuickViewModalProps) {
                 </View>
               )}
 
-              <TouchableOpacity
-                style={styles.cartBtn}
-                onPress={async () => {
-                  if (!colorSelec || !tallaSelec || !stockSelec) {
-                    Alert.alert('Selecciona una opción', 'Elige color y talla antes de añadir al carrito.');
-                    return;
-                  }
-                  await agregarItemCarrito({
-                    id_stock: stockSelec.id_stock,
-                    id_producto: producto.id_producto,
-                    nombre: producto.nombre,
-                    precio: Number(producto.precio),
-                    color: colorSelec,
-                    talla: tallaSelec,
-                    imagen: obtenerImagenPrincipal(producto.imagenes_producto),
-                  });
-                  Alert.alert('Listo', 'Producto añadido al carrito.');
-                  onClose();
-                }}
-              >
-                <Text style={styles.cartBtnText}>Añadir al carrito</Text>
-              </TouchableOpacity>
+              <Animated.View style={{ transform: [{ scale: cartBtnScale }] }}>
+                <TouchableOpacity
+                  style={styles.cartBtn}
+                  onPress={async () => {
+                    if (!colorSelec || !tallaSelec || !stockSelec) {
+                      Alert.alert('Selecciona una opción', 'Elige color y talla antes de añadir al carrito.');
+                      return;
+                    }
+                    const imagen = obtenerImagenPrincipal(producto.imagenes_producto);
+                    await agregarItemCarrito({
+                      id_stock: stockSelec.id_stock,
+                      id_producto: producto.id_producto,
+                      nombre: producto.nombre,
+                      precio: Number(producto.precio),
+                      color: colorSelec,
+                      talla: tallaSelec,
+                      imagen,
+                    });
+                    Animated.sequence([
+                      Animated.timing(cartBtnScale, { toValue: 0.94, duration: 90, useNativeDriver: true }),
+                      Animated.timing(cartBtnScale, { toValue: 1, duration: 120, useNativeDriver: true }),
+                    ]).start(() => {
+                      onAgregado?.({ imagen, nombre: producto.nombre, color: colorSelec, talla: tallaSelec, cantidad: 1 });
+                      onClose();
+                    });
+                  }}
+                >
+                  <Text style={styles.cartBtnText}>Añadir al carrito</Text>
+                </TouchableOpacity>
+              </Animated.View>
 
               <TouchableOpacity
                 onPress={() => {

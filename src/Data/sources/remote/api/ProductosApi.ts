@@ -24,6 +24,7 @@ export interface Producto {
   genero: 'hombre' | 'mujer' | 'unisex';
   estado: string;
   total_ventas: number;
+  fecha_creacion?: string;
   categorias?: { nombre_categoria: string };
   imagenes_producto?: ImagenProducto[];
 }

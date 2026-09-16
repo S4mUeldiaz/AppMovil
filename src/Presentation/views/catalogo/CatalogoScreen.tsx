@@ -22,10 +22,14 @@ import { getStock, Stock } from '../../../Data/sources/remote/api/StockApi';
 import { getFavoritos, agregarFavorito, eliminarFavorito } from '../../../Data/sources/remote/api/FavoritosApi';
 import { obtenerImagenPrincipal } from '../../utils/imagenes';
 import { getColorHex } from '../../utils/colores';
-import { colors, fonts, spacing, radius } from '../../theme/AppTheme';
+import { esProductoNuevo } from '../../utils/producto';
+import { colors, fonts, spacing, radius, shadow } from '../../theme/AppTheme';
 import { Sidebar } from '../../components/Sidebar';
 import { useSidebar } from '../../hooks/useSidebar';
 import { QuickViewModal } from '../../components/QuickViewModal';
+import { AgregarCarritoModal, ItemAgregado } from '../../components/AgregarCarritoModal';
+import { AnimatedHeartButton } from '../../components/AnimatedHeartButton';
+import { BadgeAcento } from '../../components/BadgeAcento';
 
 const SKELETON_COUNT = 8;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -57,6 +61,7 @@ export function CatalogoScreen() {
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState(false);
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
+  const [confirmacion, setConfirmacion] = useState<ItemAgregado | null>(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -116,6 +121,13 @@ export function CatalogoScreen() {
     );
     if (encontrada) setCategoriaActiva(encontrada.id_categoria);
   }, [route.params?.categoria, categorias]);
+
+  // Precarga el término de búsqueda recibido desde el buscador del TopNavbar.
+  useEffect(() => {
+    if (route.params?.busqueda !== undefined) {
+      setBusqueda(route.params.busqueda);
+    }
+  }, [route.params?.busqueda]);
 
   async function toggleFavorito(id_producto: number) {
     if (!usuario) {
@@ -279,6 +291,7 @@ export function CatalogoScreen() {
   function renderProducto({ item: p }: { item: Producto }) {
     const esFavorito = favoritos.includes(p.id_producto);
     const imagen = obtenerImagenPrincipal(p.imagenes_producto);
+    const esNuevo = esProductoNuevo(p.fecha_creacion);
 
     return (
       <TouchableOpacity
@@ -286,44 +299,47 @@ export function CatalogoScreen() {
         activeOpacity={0.85}
         onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
       >
-        <View style={styles.cardImgWrap}>
-          {imagen ? (
-            <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
-          ) : (
-            <View style={styles.cardImgPlaceholder}>
-              <Feather name="image" size={28} color={colors.textMuted} />
-            </View>
-          )}
-          <TouchableOpacity
-            style={[styles.favBtn, esFavorito && styles.favBtnActive]}
-            onPress={() => toggleFavorito(p.id_producto)}
-          >
-            <Feather name="heart" size={16} color={esFavorito ? colors.background : colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickViewBtn} onPress={() => setQuickViewId(p.id_producto)}>
-            <Feather name="eye" size={14} color={colors.text} />
-            <Text style={styles.quickViewText}>Vista rápida</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.cardInfo}>
-          <Text style={styles.cardCategoria} numberOfLines={1}>
-            {p.categorias?.nombre_categoria ?? ''}
-          </Text>
-          <Text style={styles.cardNombre} numberOfLines={1}>
-            {p.nombre}
-          </Text>
-          <Text style={styles.cardMarca} numberOfLines={1}>
-            {p.marca}
-          </Text>
-          <View style={styles.cardFooter}>
-            <Text style={styles.cardPrecio}>${Number(p.precio).toLocaleString()}</Text>
-            <TouchableOpacity
-              style={styles.cardBtn}
-              onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
-            >
-              <Feather name="shopping-bag" size={12} color={colors.background} />
-              <Text style={styles.cardBtnText}>Ver</Text>
+        <View style={styles.cardBody}>
+          <View style={styles.cardImgWrap}>
+            {imagen ? (
+              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
+            ) : (
+              <View style={styles.cardImgPlaceholder}>
+                <Feather name="image" size={28} color={colors.textMuted} />
+              </View>
+            )}
+            {esNuevo && <BadgeAcento texto="Nuevo" style={styles.cardBadge} />}
+            <AnimatedHeartButton
+              style={[styles.favBtn, esFavorito && styles.favBtnActive]}
+              activo={esFavorito}
+              onPress={() => toggleFavorito(p.id_producto)}
+              size={16}
+            />
+            <TouchableOpacity style={styles.quickViewBtn} onPress={() => setQuickViewId(p.id_producto)}>
+              <Feather name="eye" size={14} color={colors.text} />
+              <Text style={styles.quickViewText}>Vista rápida</Text>
             </TouchableOpacity>
+          </View>
+          <View style={styles.cardInfo}>
+            <Text style={styles.cardCategoria} numberOfLines={1}>
+              {p.categorias?.nombre_categoria ?? ''}
+            </Text>
+            <Text style={styles.cardNombre} numberOfLines={1}>
+              {p.nombre}
+            </Text>
+            <Text style={styles.cardMarca} numberOfLines={1}>
+              {p.marca}
+            </Text>
+            <View style={styles.cardFooter}>
+              <Text style={styles.cardPrecio}>${Number(p.precio).toLocaleString()}</Text>
+              <TouchableOpacity
+                style={styles.cardBtn}
+                onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
+              >
+                <Feather name="shopping-bag" size={12} color={colors.background} />
+                <Text style={styles.cardBtnText}>Ver</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -439,7 +455,16 @@ export function CatalogoScreen() {
         </View>
       </Modal>
 
-      <QuickViewModal idProducto={quickViewId} onClose={() => setQuickViewId(null)} />
+      <QuickViewModal idProducto={quickViewId} onClose={() => setQuickViewId(null)} onAgregado={setConfirmacion} />
+
+      <AgregarCarritoModal
+        item={confirmacion}
+        onClose={() => setConfirmacion(null)}
+        onIrCarrito={() => {
+          setConfirmacion(null);
+          (navigation as any).navigate('MainTabs', { screen: 'CarritoScreen' });
+        }}
+      />
 
       <Sidebar abierto={abierto} onCerrar={cerrar} usuario={usuario} onLogout={cerrarSesion} />
     </View>
@@ -519,8 +544,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
-    overflow: 'hidden',
+    ...shadow.card,
   },
+  cardBody: { borderRadius: 12, overflow: 'hidden' },
+  cardBadge: { position: 'absolute', top: 8, left: 8 },
   cardImgWrap: { height: 160, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' },
   cardImg: { width: '80%', height: '80%' },
   cardImgPlaceholder: { alignItems: 'center', justifyContent: 'center' },
