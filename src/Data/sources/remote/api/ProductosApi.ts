@@ -11,6 +11,7 @@ export interface Categoria {
 export interface ImagenProducto {
   url_imagen: string;
   orden: number;
+  color: string;
 }
 
 export interface Producto {

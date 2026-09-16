@@ -4,6 +4,7 @@ import {
   Text,
   Image,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   Animated,
   StyleSheet,
@@ -15,7 +16,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../../../App';
 import { obtenerUsuarioActual } from '../../../Data/sources/remote/api/Authapi';
-import { getProductoPorId, Producto } from '../../../Data/sources/remote/api/ProductosApi';
+import { getProductoPorId, ImagenProducto, Producto } from '../../../Data/sources/remote/api/ProductosApi';
 import { getStockPorProducto, Stock } from '../../../Data/sources/remote/api/StockApi';
 import { getFavoritos, agregarFavorito, eliminarFavorito } from '../../../Data/sources/remote/api/FavoritosApi';
 import { agregarItem as agregarItemCarrito } from '../../../Data/sources/local/CarritoStorage';
@@ -45,6 +46,7 @@ export function DetalleProductoScreen() {
   const [cargando, setCargando] = useState(true);
   const [confirmacion, setConfirmacion] = useState<ItemAgregado | null>(null);
   const agregarBtnScale = useRef(new Animated.Value(1)).current;
+  const galleryRef = useRef<FlatList<ImagenProducto>>(null);
 
   useEffect(() => {
     let activo = true;
@@ -77,16 +79,26 @@ export function DetalleProductoScreen() {
     setCantidad(1);
   }, [colorSelec, tallaSelec]);
 
+  useEffect(() => {
+    setImagenIndex(0);
+    galleryRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [colorSelec]);
+
   const coloresUnicos = [...new Set(stock.map((s) => s.color))].filter(Boolean);
   const tallasPorColor = stock.filter((s) => s.color === colorSelec);
   const stockSelec = stock.find((s) => s.color === colorSelec && s.tallas?.talla === tallaSelec);
   const stockBajo = stockSelec ? stockSelec.stock_actual > 0 && stockSelec.stock_actual <= stockSelec.stock_minimo : false;
   const agotado = stockSelec ? stockSelec.stock_actual <= 0 : false;
 
-  const imagenes = producto?.imagenes_producto?.length
-    ? [...producto.imagenes_producto].sort((a, b) => a.orden - b.orden)
+  const imagenesGenericas = (producto?.imagenes_producto ?? []).filter((img) => img.color === '');
+  const imagenesDelColor = colorSelec
+    ? (producto?.imagenes_producto ?? []).filter((img) => img.color === colorSelec)
     : [];
-  const imagenActual = imagenes[imagenIndex]?.url_imagen ?? obtenerImagenPrincipal(producto?.imagenes_producto);
+  const imagenes = [...(imagenesDelColor.length > 0 ? imagenesDelColor : imagenesGenericas)].sort(
+    (a, b) => a.orden - b.orden
+  );
+  const imagenIndexSeguro = imagenes.length > 0 ? Math.min(imagenIndex, imagenes.length - 1) : 0;
+  const imagenActual = imagenes[imagenIndexSeguro]?.url_imagen ?? obtenerImagenPrincipal(producto?.imagenes_producto);
 
   function cambiarCantidad(delta: number) {
     if (!stockSelec) return;
@@ -124,7 +136,7 @@ export function DetalleProductoScreen() {
     }
     if (cantidad < 1 || cantidad > stockSelec.stock_actual) return;
 
-    const imagen = obtenerImagenPrincipal(producto.imagenes_producto);
+    const imagen = imagenActual;
     await agregarItemCarrito(
       {
         id_stock: stockSelec.id_stock,
@@ -163,26 +175,38 @@ export function DetalleProductoScreen() {
     <View style={styles.wrapper}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.imgWrap}>
-          {imagenActual ? (
-            <Image source={{ uri: imagenActual }} style={styles.img} resizeMode="contain" />
+          {imagenes.length > 0 ? (
+            <FlatList
+              ref={galleryRef}
+              data={imagenes}
+              keyExtractor={(img) => img.url_imagen}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              style={styles.gallery}
+              getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
+              onMomentumScrollEnd={(e) => {
+                const nuevoIndex = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+                setImagenIndex(nuevoIndex);
+              }}
+              renderItem={({ item }) => (
+                <View style={styles.gallerySlide}>
+                  <Image source={{ uri: item.url_imagen }} style={styles.img} resizeMode="contain" />
+                </View>
+              )}
+            />
           ) : (
             <Feather name="image" size={48} color={colors.textMuted} />
           )}
         </View>
 
         {imagenes.length > 1 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbsRow}>
-          {imagenes.map((img, i) => (
-            <TouchableOpacity key={img.url_imagen} onPress={() => setImagenIndex(i)}>
-              <Image
-                source={{ uri: img.url_imagen }}
-                style={[styles.thumb, i === imagenIndex && styles.thumbActivo]}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
+          <View style={styles.dotsRow}>
+            {imagenes.map((img, i) => (
+              <View key={img.url_imagen} style={[styles.dot, i === imagenIndexSeguro && styles.dotActivo]} />
+            ))}
+          </View>
+        )}
 
       <View style={styles.info}>
         <Text style={styles.nombre}>{producto.nombre}</Text>
@@ -306,6 +330,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   img: { width: '85%', height: '85%' },
+  gallery: { width: SCREEN_WIDTH, height: SCREEN_WIDTH },
+  gallerySlide: { width: SCREEN_WIDTH, height: SCREEN_WIDTH, alignItems: 'center', justifyContent: 'center' },
   header: {
     position: 'absolute',
     top: 0,
@@ -325,17 +351,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   favBtnActive: { backgroundColor: colors.primary },
-  thumbsRow: { paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
-  thumb: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.sm,
-    marginRight: spacing.sm,
-    backgroundColor: '#111',
-    borderWidth: 1,
-    borderColor: colors.border,
+  dotsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
   },
-  thumbActivo: { borderColor: colors.primary },
+  dot: { width: 6, height: 6, borderRadius: radius.pill, backgroundColor: colors.border },
+  dotActivo: { width: 18, backgroundColor: colors.primary },
   info: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg },
   nombre: { fontFamily: fonts.display, fontSize: 24, color: colors.text },
   marca: { fontFamily: fonts.body, fontSize: 13, color: colors.textMuted, marginTop: spacing.xs },
