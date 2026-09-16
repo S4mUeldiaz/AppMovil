@@ -47,6 +47,20 @@ export interface PedidoConDetalle extends Pedido {
   factura: FacturaDetalle[];
 }
 
+export interface PedidoAdmin extends PedidoConDetalle {
+  usuarios?: { numero_documento: string; nombre: string; apellido: string; correo: string };
+}
+
+/** Próximos estados válidos desde cada estado_pedido (misma regla que el panel admin web). */
+export const ESTADOS_SIGUIENTES: Record<string, string[]> = {
+  pendiente: ['confirmado', 'cancelado'],
+  confirmado: ['preparacion', 'cancelado'],
+  preparacion: ['enviado', 'cancelado'],
+  enviado: ['entregado'],
+  entregado: [],
+  cancelado: [],
+};
+
 async function authHeaders() {
   const token = await obtenerToken();
   return { Authorization: `Bearer ${token}` };
@@ -75,5 +89,10 @@ export async function getPedidosPorUsuario(numero_documento: string): Promise<Pe
   const { data } = await ApiDelivery.get(`/pedidos/usuario/${numero_documento}`, {
     headers: await authHeaders(),
   });
+  return data;
+}
+
+export async function getPedidos(): Promise<PedidoAdmin[]> {
+  const { data } = await ApiDelivery.get('/pedidos', { headers: await authHeaders() });
   return data;
 }

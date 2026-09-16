@@ -39,10 +39,11 @@ export function LoginScreen() {
     setError('');
     setCargando(true);
     try {
-      // Nota: el panel de administrador es exclusivo de la web.
-      // En el móvil, cualquier usuario autenticado entra a HomeScreen.
-      await login(correo, password);
-      navigation.navigate('HomeScreen' as never);
+      const usuario = await login(correo, password);
+      (navigation as any).reset({
+        index: 0,
+        routes: [{ name: usuario.nombre_rol === 'admin' ? 'AdminTabs' : 'MainTabs' }],
+      });
     } catch (err: any) {
       mostrarError(err?.response?.data?.error || 'Credenciales incorrectas');
     } finally {
