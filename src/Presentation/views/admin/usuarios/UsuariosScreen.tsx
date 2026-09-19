@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
   badgeActivo: { backgroundColor: colors.primary, borderColor: colors.primary },
   badgeInactivo: { backgroundColor: 'transparent', borderColor: colors.border },
   badgeText: { fontFamily: fonts.bodySemiBold, fontSize: 11 },
-  badgeTextActivo: { color: colors.background },
+  badgeTextActivo: { color: colors.onPrimary },
   badgeTextInactivo: { color: colors.textMuted },
   cardMeta: { marginTop: spacing.md, gap: 2 },
   metaTexto: { color: colors.textMuted, fontFamily: fonts.body, fontSize: 12 },
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   toggleBtnDesactivar: { borderColor: colors.error },
   toggleBtnActivar: { backgroundColor: colors.primary, borderColor: colors.primary },
   toggleBtnText: { color: colors.error, fontFamily: fonts.bodySemiBold, fontSize: 12 },
-  toggleBtnTextActivar: { color: colors.background },
+  toggleBtnTextActivar: { color: colors.onPrimary },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: spacing.md },
   emptyTexto: { color: colors.textMuted, fontFamily: fonts.body, fontSize: 14 },
 });

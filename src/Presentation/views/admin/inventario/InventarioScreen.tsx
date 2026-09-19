@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   pillText: { color: colors.textMuted, fontFamily: fonts.bodyMedium, fontSize: 12 },
-  pillTextActive: { color: colors.background },
+  pillTextActive: { color: colors.onPrimary },
   error: { color: colors.error, fontFamily: fonts.body, fontSize: 13, textAlign: 'center', marginBottom: spacing.md },
   lista: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.md },
   card: {

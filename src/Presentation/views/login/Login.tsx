@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: colors.background,
+    color: colors.onPrimary,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 1,

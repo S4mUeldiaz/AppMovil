@@ -63,9 +63,11 @@ export function FavoritosScreen() {
         <View style={styles.cardBody}>
           <View style={styles.cardImgWrap}>
             {imagen ? (
-              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
+              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="cover" />
             ) : (
-              <Feather name="image" size={24} color={colors.textMuted} />
+              <View style={styles.cardImgPlaceholder}>
+                <Feather name="image" size={24} color={colors.textMuted} />
+              </View>
             )}
             <AnimatedHeartButton
               style={styles.favBtn}
@@ -159,11 +161,10 @@ const styles = StyleSheet.create({
   cardBody: { borderRadius: 12, overflow: 'hidden' },
   cardImgWrap: {
     height: 140,
-    backgroundColor: '#111',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.backgroundInput,
   },
-  cardImg: { width: '80%', height: '80%' },
+  cardImgPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  cardImg: { width: '100%', height: '100%' },
   favBtn: {
     position: 'absolute',
     top: 8,

@@ -1,66 +1,63 @@
-// Fuente de verdad: velyshFrontend/src/styles/variables.css
-// Cualquier cambio de paleta/tipografía se hace allá primero, y se traduce aquí.
+// Fuente de verdad: Design System VELYSH, tema "Light" (tokens.json).
+// Comentarios = nombre del token de origen.
 
 export const colors = {
-  // Alias legacy (colors.bg, colors.bgCard, colors.bgInput) — se mantienen
-  // para no romper las pantallas que ya los usan (Home, Login, Register,
-  // Sidebar, Carrito, Favoritos, Perfil). Todo código nuevo debe usar los
-  // nombres largos (background, backgroundCard, backgroundInput).
-  bg: '#000000',
-  bgCard: '#191919',
-  bgInput: '#2a2a2a',
+  // Alias legacy — sin usos hoy en src/, se mantienen por compatibilidad.
+  bg: '#fafafa', // surface-100
+  bgCard: '#ffffff', // surface-200
+  bgInput: '#f1f1f0', // surface-300
 
-  background: '#000000', // --color-bg
-  backgroundCard: '#191919', // --color-bg-card
-  backgroundInput: '#2a2a2a', // --color-bg-input
-  primary: '#ffffff', // --color-primary
-  primaryHover: '#d9d9d9', // --color-primary-hover (estado "pressed" del botón primario)
-  text: '#ffffff', // --color-text
-  textMuted: '#9a9a9a', // --color-text-muted
-  border: '#333333', // --color-border
-  overlay: 'rgba(255, 255, 255, 0.10)', // --color-overlay
-  error: '#e63946', // --color-error — SOLO mensajes de error reales
-  warning: '#d4a72c', // ámbar de stock bajo. No es var CSS en el web (es un
-  // valor reutilizado a mano en DetalleProducto.css/QuickView.css), pero
-  // aquí sí lo centralizamos como token para no repetir el string suelto.
+  background: '#fafafa', // surface-100 — fondo base de pantalla
+  backgroundCard: '#ffffff', // surface-200 — cards, modales
+  backgroundInput: '#f1f1f0', // surface-300 — inputs sobre cards, skeletons, chips inactivos
+  primary: '#121212', // primary-action — fondo de botones/elementos primarios
+  onPrimary: '#ffffff', // on-primary-action — SIEMPRE el texto/ícono sobre `primary`. Opuesto exacto de primary; nunca un literal aparte.
+  primaryHover: '#3a3a3a', // sin token en el DS (estado "pressed" de primary) — valor derivado
+  text: '#121212', // ink
+  textMuted: '#6b6b6b', // ink-muted
+  border: '#e3e2e0', // border
+  overlay: 'rgba(18, 18, 18, 0.55)', // overlay-scrim
+  overlayStrong: 'rgba(18, 18, 18, 0.75)', // sin token en el DS — variante intensa de overlay-scrim, solo para texto pequeño/crítico (≤11px) sobre fotos que pueden ser muy claras
+  error: '#c0392b', // error — SOLO errores reales de validación/red
+  warning: '#d4a72c', // accent-amber — stock bajo, badges "Más vendido"/"Nuevo"
+  favoriteActive: '#e0273f', // favorite-active — solo el corazón de favorito activo
 };
 
 export const fonts = {
-  display: 'InriaSerif_400Regular', // --font-display, peso 400
-  displayBold: 'InriaSerif_700Bold', // --font-display, peso 700
+  display: 'InriaSerif_400Regular',
+  displayBold: 'InriaSerif_700Bold',
   bodyLight: 'Inter_300Light',
-  body: 'Inter_400Regular', // --font-main, peso 400
+  body: 'Inter_400Regular',
   bodyMedium: 'Inter_500Medium',
   bodySemiBold: 'Inter_600SemiBold',
   bodyBold: 'Inter_700Bold',
 };
 
 export const radius = {
-  sm: 8, // --border-radius
-  lg: 16, // --border-radius-lg
-  card: 12, // radio "duro" que se repite en tarjetas de producto y skeletons
-  pill: 999, // botones/search bars/chips redondeados (50px en el web)
+  sm: 4, // radius-sm
+  lg: 16, // radius-lg
+  card: 8, // radius-md — cards de producto
+  pill: 999, // radius-pill
 };
 
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
-  xxxl: 32,
+  xs: 4, // space-1
+  sm: 8, // space-2
+  md: 12, // space-3
+  lg: 16, // space-4
+  xl: 24, // space-5
+  xxl: 32, // space-6
+  xxxl: 48, // space-8
 };
 
-// Elevación sutil para cards sobre el fondo negro — casi imperceptible, no es
-// un efecto Material Design genérico. shadowColor neutro (negro), no agrega paleta.
 export const shadow = {
   card: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 3,
+    // shadow-card light: 0 1px 3px rgba(18,18,18,0.08)
+    shadowColor: '#121212',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 1.5,
+    elevation: 1,
   },
 };
 

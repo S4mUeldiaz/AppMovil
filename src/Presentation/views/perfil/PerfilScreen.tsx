@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Modal, Image, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sidebar } from '../../components/Sidebar';
 import { TopNavbar } from '../../components/TopNavbar';
 import { useSidebar } from '../../hooks/useSidebar';
 import { guardarUsuarioActual } from '../../../Data/sources/remote/api/Authapi';
 import { actualizarUsuario, cambiarPassword, eliminarCuenta } from '../../../Data/sources/remote/api/UsuariosApi';
+import { obtenerFotoPerfil, guardarFotoPerfil } from '../../../Data/sources/local/FotoPerfilStorage';
 import { colors, fonts, radius, spacing } from '../../theme/AppTheme';
 
 export function PerfilScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { abierto, abrir, cerrar, usuario, cerrarSesion, setUsuario } = useSidebar();
 
   const [form, setForm] = useState({
@@ -21,6 +25,68 @@ export function PerfilScreen() {
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (usuario) {
+      setForm({
+        nombre: usuario.nombre ?? '',
+        apellido: usuario.apellido ?? '',
+        telefono: usuario.telefono ?? '',
+      });
+    }
+  }, [usuario]);
+
+  const [fotoUri, setFotoUri] = useState<string | null>(null);
+  const [modalFotoVisible, setModalFotoVisible] = useState(false);
+  const [visorVisible, setVisorVisible] = useState(false);
+
+  useEffect(() => {
+    if (usuario) {
+      obtenerFotoPerfil(usuario.numero_documento).then(setFotoUri);
+    } else {
+      setFotoUri(null);
+    }
+  }, [usuario]);
+
+  async function elegirFoto(origen: 'camara' | 'galeria') {
+    if (!usuario) return;
+    setModalFotoVisible(false);
+
+    const permiso =
+      origen === 'camara'
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permiso.granted) {
+      Alert.alert(
+        'Permiso necesario',
+        origen === 'camara'
+          ? 'Activa el permiso de cámara desde Ajustes para tomar tu foto de perfil.'
+          : 'Activa el permiso de fotos desde Ajustes para elegir tu foto de perfil.'
+      );
+      return;
+    }
+
+    const opciones: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    };
+    const resultado =
+      origen === 'camara'
+        ? await ImagePicker.launchCameraAsync(opciones)
+        : await ImagePicker.launchImageLibraryAsync(opciones);
+
+    if (resultado.canceled || !resultado.assets[0]) return;
+
+    try {
+      const uriPersistente = await guardarFotoPerfil(usuario.numero_documento, resultado.assets[0].uri);
+      setFotoUri(uriPersistente);
+    } catch {
+      Alert.alert('Error', 'No se pudo guardar la foto, intenta de nuevo.');
+    }
+  }
 
   const [passwordForm, setPasswordForm] = useState({ password_actual: '', password_nueva: '' });
   const [verActual, setVerActual] = useState(false);
@@ -118,7 +184,25 @@ export function PerfilScreen() {
       <TopNavbar onAbrirMenu={abrir} titulo="Mi perfil" />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.avatar}>
-          <Feather name="user" size={28} color={colors.text} />
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => (fotoUri ? setVisorVisible(true) : setModalFotoVisible(true))}
+          >
+            <View style={styles.avatarCirculo}>
+              {fotoUri ? (
+                <Image source={{ uri: fotoUri }} style={styles.avatarImg} />
+              ) : (
+                <Feather name="user" size={40} color={colors.text} />
+              )}
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.avatarBadge}
+            activeOpacity={0.8}
+            onPress={() => setModalFotoVisible(true)}
+          >
+            <Feather name="camera" size={14} color={colors.onPrimary} />
+          </TouchableOpacity>
         </View>
 
         {/* DATOS PERSONALES */}
@@ -130,6 +214,7 @@ export function PerfilScreen() {
             style={styles.input}
             value={form.nombre}
             onChangeText={(v) => setForm((p) => ({ ...p, nombre: v }))}
+            placeholder="Nombre no registrado"
             placeholderTextColor={colors.textMuted}
           />
 
@@ -138,6 +223,7 @@ export function PerfilScreen() {
             style={styles.input}
             value={form.apellido}
             onChangeText={(v) => setForm((p) => ({ ...p, apellido: v }))}
+            placeholder="Apellido no registrado"
             placeholderTextColor={colors.textMuted}
           />
 
@@ -149,6 +235,7 @@ export function PerfilScreen() {
             style={styles.input}
             value={form.telefono}
             onChangeText={(v) => setForm((p) => ({ ...p, telefono: v }))}
+            placeholder="Teléfono no registrado"
             placeholderTextColor={colors.textMuted}
             keyboardType="phone-pad"
           />
@@ -257,6 +344,39 @@ export function PerfilScreen() {
         </View>
       </Modal>
 
+      <Modal visible={modalFotoVisible} transparent animationType="fade" onRequestClose={() => setModalFotoVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitulo}>Foto de perfil</Text>
+            <TouchableOpacity style={styles.fotoOpcionBtn} onPress={() => elegirFoto('camara')}>
+              <Feather name="camera" size={18} color={colors.text} />
+              <Text style={styles.fotoOpcionText}>Tomar foto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.fotoOpcionBtn} onPress={() => elegirFoto('galeria')}>
+              <Feather name="image" size={18} color={colors.text} />
+              <Text style={styles.fotoOpcionText}>Elegir de la galería</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.fotoCancelarBtn} onPress={() => setModalFotoVisible(false)}>
+              <Text style={styles.fotoCancelarText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={visorVisible} transparent animationType="fade" onRequestClose={() => setVisorVisible(false)}>
+        <View style={styles.visorRoot}>
+          <TouchableOpacity style={styles.visorOverlay} activeOpacity={1} onPress={() => setVisorVisible(false)}>
+            {fotoUri && <Image source={{ uri: fotoUri }} style={styles.visorImg} resizeMode="contain" />}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.visorCerrar, { top: insets.top + spacing.md }]}
+            onPress={() => setVisorVisible(false)}
+          >
+            <Feather name="x" size={22} color={colors.onPrimary} />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
       <Sidebar abierto={abierto} onCerrar={cerrar} usuario={usuario} onLogout={cerrarSesion} />
     </View>
   );
@@ -266,16 +386,50 @@ const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxxl },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 96,
+    height: 96,
+    alignSelf: 'center',
+    marginVertical: spacing.lg,
+  },
+  avatarCirculo: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: colors.backgroundInput,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
-    marginVertical: spacing.lg,
+    overflow: 'hidden',
+  },
+  avatarImg: { width: '100%', height: '100%' },
+  avatarBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // colors.primary asume el tema Light (coincide con negro casi puro). Si se activa el tema Dark,
+  // primary pasa a blanco y este visor necesitará revisión.
+  visorRoot: { flex: 1, backgroundColor: colors.primary },
+  visorOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  visorImg: { width: '80%', aspectRatio: 1, borderRadius: radius.lg },
+  visorCerrar: {
+    position: 'absolute',
+    right: spacing.xl,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.overlay,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   seccion: {
     backgroundColor: colors.backgroundCard,
@@ -327,7 +481,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   btnDisabled: { opacity: 0.6 },
-  btnText: { color: colors.background, fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 0.5 },
+  btnText: { color: colors.onPrimary, fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 0.5 },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -359,7 +513,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   emptyBtnText: { color: colors.text, fontSize: 13, fontWeight: '600' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  modalOverlay: { flex: 1, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   modalCard: {
     width: '100%',
     backgroundColor: colors.backgroundCard,
@@ -386,5 +540,29 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
-  modalBtnEliminarText: { color: colors.text, fontFamily: fonts.bodySemiBold, fontSize: 13 },
+  modalBtnEliminarText: { color: colors.onPrimary, fontFamily: fonts.bodySemiBold, fontSize: 13 },
+  fotoOpcionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.backgroundInput,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.md,
+  },
+  fotoOpcionText: { color: colors.text, fontFamily: fonts.bodyMedium, fontSize: 14 },
+  fotoCancelarBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.backgroundInput,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.md,
+    marginTop: spacing.md,
+  },
+  fotoCancelarText: { color: colors.text, fontFamily: fonts.bodySemiBold, fontSize: 13 },
 });

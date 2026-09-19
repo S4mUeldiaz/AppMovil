@@ -55,7 +55,7 @@ export function AgregarCarritoModal({ item, onClose, onIrCarrito }: AgregarCarri
           </View>
 
           <TouchableOpacity style={styles.irCarritoBtn} onPress={onIrCarrito}>
-            <Feather name="shopping-bag" size={16} color={colors.background} />
+            <Feather name="shopping-bag" size={16} color={colors.onPrimary} />
             <Text style={styles.irCarritoText}>Ir al carrito</Text>
           </TouchableOpacity>
 
@@ -69,7 +69,7 @@ export function AgregarCarritoModal({ item, onClose, onIrCarrito }: AgregarCarri
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   card: {
     backgroundColor: colors.backgroundCard,
     borderTopLeftRadius: radius.lg,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: radius.sm,
-    backgroundColor: '#111',
+    backgroundColor: colors.backgroundInput,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     paddingVertical: spacing.md,
   },
-  irCarritoText: { color: colors.background, fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 0.5 },
+  irCarritoText: { color: colors.onPrimary, fontFamily: fonts.bodyBold, fontSize: 13, letterSpacing: 0.5 },
   seguirBtn: { alignItems: 'center', paddingVertical: spacing.md },
   seguirText: { color: colors.textMuted, fontFamily: fonts.body, fontSize: 13 },
 });

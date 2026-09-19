@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, Image, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, FlatList, Image, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,8 @@ import {
   ItemCarrito,
 } from '../../../Data/sources/local/CarritoStorage';
 import { crearPedido, actualizarEstadoPedido } from '../../../Data/sources/remote/api/PedidosApi';
+import { getProductos, Producto } from '../../../Data/sources/remote/api/ProductosApi';
+import { obtenerImagenPrincipal } from '../../utils/imagenes';
 import { Sidebar } from '../../components/Sidebar';
 import { useSidebar } from '../../hooks/useSidebar';
 import { colors, fonts, radius, spacing } from '../../theme/AppTheme';
@@ -30,6 +32,7 @@ export function CarritoScreen() {
   const { abierto, abrir, cerrar, usuario, cerrarSesion } = useSidebar();
   const [items, setItems] = useState<ItemCarrito[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [masVendidos, setMasVendidos] = useState<Producto[]>([]);
   const [paso, setPaso] = useState<Paso>(1);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
@@ -57,6 +60,18 @@ export function CarritoScreen() {
       };
     }, [])
   );
+
+  useEffect(() => {
+    getProductos()
+      .then((data) => {
+        setMasVendidos([...data].sort((a, b) => b.total_ventas - a.total_ventas));
+      })
+      .catch(() => setMasVendidos([]));
+  }, []);
+
+  const sugeridos = masVendidos
+    .filter((p) => !items.some((i) => i.id_producto === p.id_producto))
+    .slice(0, 3);
 
   async function cambiarCantidad(id_stock: number, delta: number) {
     const item = items.find((i) => i.id_stock === id_stock);
@@ -168,6 +183,43 @@ export function CarritoScreen() {
       <Text style={[styles.titulo, { marginTop: insets.top + spacing.xxl }]}>
         {paso === 1 ? 'Mi carrito' : 'Pago'}
       </Text>
+
+      {paso === 1 && sugeridos.length > 0 && (
+        <View style={styles.sugeridos}>
+          <Text style={styles.sugeridosTitulo}>Podría interesarte</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.sugeridosLista}
+          >
+            {sugeridos.map((p) => {
+              const imagen = obtenerImagenPrincipal(p.imagenes_producto);
+              return (
+                <TouchableOpacity
+                  key={p.id_producto}
+                  style={styles.sugeridoCard}
+                  activeOpacity={0.85}
+                  onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
+                >
+                  <View style={styles.sugeridoImgWrap}>
+                    {imagen ? (
+                      <Image source={{ uri: imagen }} style={styles.sugeridoImg} resizeMode="cover" />
+                    ) : (
+                      <View style={styles.sugeridoImgPlaceholder}>
+                        <Feather name="image" size={20} color={colors.textMuted} />
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.sugeridoNombre} numberOfLines={1}>
+                    {p.nombre}
+                  </Text>
+                  <Text style={styles.sugeridoPrecio}>${Number(p.precio).toLocaleString()}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       {paso === 1 ? (
         <>
@@ -286,6 +338,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
+  sugeridos: { marginBottom: spacing.lg },
+  sugeridosTitulo: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.text,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.xl,
+  },
+  sugeridosLista: { gap: spacing.md, paddingHorizontal: spacing.xl },
+  sugeridoCard: { width: 110 },
+  sugeridoImgWrap: {
+    width: 110,
+    height: 110,
+    borderRadius: radius.card,
+    backgroundColor: colors.backgroundInput,
+    overflow: 'hidden',
+  },
+  sugeridoImg: { width: '100%', height: '100%' },
+  sugeridoImgPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  sugeridoNombre: { fontFamily: fonts.body, fontSize: 11, color: colors.text, marginTop: spacing.sm },
+  sugeridoPrecio: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.text, marginTop: 2 },
   lista: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.md },
   card: {
     flexDirection: 'row',
@@ -301,7 +374,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: radius.sm,
-    backgroundColor: '#111',
+    backgroundColor: colors.backgroundInput,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -371,7 +444,7 @@ const styles = StyleSheet.create({
   },
   confirmarBtnDisabled: { opacity: 0.6 },
   confirmarBtnText: {
-    color: colors.background,
+    color: colors.onPrimary,
     fontFamily: fonts.bodyBold,
     fontSize: 13,
     letterSpacing: 1,
@@ -411,7 +484,7 @@ const styles = StyleSheet.create({
   },
   metodoBtnActivo: { backgroundColor: colors.primary, borderColor: colors.primary },
   metodoBtnText: { color: colors.textMuted, fontFamily: fonts.bodyMedium, fontSize: 13 },
-  metodoBtnTextActivo: { color: colors.background },
+  metodoBtnTextActivo: { color: colors.onPrimary },
   errorTexto: { color: colors.error, fontFamily: fonts.body, fontSize: 13, marginTop: spacing.lg, textAlign: 'center' },
   footerForm: {
     flexDirection: 'row',

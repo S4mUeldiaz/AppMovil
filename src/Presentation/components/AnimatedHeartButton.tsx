@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Animated, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/AppTheme';
 
 interface AnimatedHeartButtonProps {
@@ -12,14 +12,14 @@ interface AnimatedHeartButtonProps {
   colorInactivo?: string;
 }
 
-/** Botón de corazón con un pulso (scale) al presionar — equivalente al favPulse del web. */
+
 export function AnimatedHeartButton({
   activo,
   onPress,
   size = 16,
   style,
-  colorActivo = colors.background,
-  colorInactivo = colors.primary,
+  colorActivo = colors.favoriteActive,
+  colorInactivo = colors.onPrimary,
 }: AnimatedHeartButtonProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -34,7 +34,11 @@ export function AnimatedHeartButton({
   return (
     <TouchableOpacity style={style} onPress={handlePress}>
       <Animated.View style={{ transform: [{ scale }] }}>
-        <Feather name="heart" size={size} color={activo ? colorActivo : colorInactivo} />
+        {activo ? (
+          <Ionicons name="heart" size={size} color={colorActivo} />
+        ) : (
+          <Feather name="heart" size={size} color={colorInactivo} />
+        )}
       </Animated.View>
     </TouchableOpacity>
   );

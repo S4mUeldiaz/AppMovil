@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image, TextInput, StyleSheet, KeyboardType } from 'react-native';
+import { colors } from '../theme/AppTheme';
 
 interface Props {
     image: any,
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
     formTextInput: {
         flex: 1,
         borderBottomWidth: 1,
-        borderBottomColor: '#AAAAAA',
+        borderBottomColor: colors.textMuted,
         marginLeft: 15,
     }
 })

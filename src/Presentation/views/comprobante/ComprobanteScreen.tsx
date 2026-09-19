@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnText: {
-    color: colors.background,
+    color: colors.onPrimary,
     fontFamily: fonts.bodyBold,
     fontSize: 13,
     letterSpacing: 1,

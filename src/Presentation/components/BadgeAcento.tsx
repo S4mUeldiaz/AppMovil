@@ -18,7 +18,7 @@ export function BadgeAcento({ texto, style }: BadgeAcentoProps) {
 
 const styles = StyleSheet.create({
   badge: {
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: colors.overlayStrong,
     borderWidth: 1,
     borderColor: colors.warning,
     borderRadius: radius.pill,

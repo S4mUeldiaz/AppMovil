@@ -62,7 +62,7 @@ export function TabNavigator({ navigation }: Props) {
           paddingTop: 8,
         },
         tabBarLabelStyle: { fontFamily: fonts.bodySemiBold, fontSize: 10 },
-        tabBarBadgeStyle: { backgroundColor: colors.primary, color: colors.background, fontSize: 10 },
+        tabBarBadgeStyle: { backgroundColor: colors.primary, color: colors.onPrimary, fontSize: 10 },
         tabBarIcon: ({ color, size, focused }) => (
           <Feather name={ICONOS[route.name as keyof MainTabParamList]} size={focused ? size + 1 : size} color={color} />
         ),

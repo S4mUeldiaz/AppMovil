@@ -15,8 +15,8 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../../../App';
-import { obtenerUsuarioActual } from '../../../Data/sources/remote/api/Authapi';
-import { getProductoPorId, ImagenProducto, Producto } from '../../../Data/sources/remote/api/ProductosApi';
+import { obtenerUsuarioActual, logout } from '../../../Data/sources/remote/api/Authapi';
+import { getProductoPorId, getProductos, ImagenProducto, Producto } from '../../../Data/sources/remote/api/ProductosApi';
 import { getStockPorProducto, Stock } from '../../../Data/sources/remote/api/StockApi';
 import { getFavoritos, agregarFavorito, eliminarFavorito } from '../../../Data/sources/remote/api/FavoritosApi';
 import { agregarItem as agregarItemCarrito } from '../../../Data/sources/local/CarritoStorage';
@@ -43,6 +43,7 @@ export function DetalleProductoScreen() {
   const [cantidad, setCantidad] = useState(1);
   const [imagenIndex, setImagenIndex] = useState(0);
   const [esFavorito, setEsFavorito] = useState(false);
+  const [recomendados, setRecomendados] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
   const [confirmacion, setConfirmacion] = useState<ItemAgregado | null>(null);
   const agregarBtnScale = useRef(new Animated.Value(1)).current;
@@ -53,7 +54,11 @@ export function DetalleProductoScreen() {
     (async () => {
       setCargando(true);
       const usuario = await obtenerUsuarioActual();
-      const [prod, st] = await Promise.all([getProductoPorId(id_producto), getStockPorProducto(id_producto)]);
+      const [prod, st, todos] = await Promise.all([
+        getProductoPorId(id_producto),
+        getStockPorProducto(id_producto),
+        getProductos(),
+      ]);
       let favorito = false;
       if (usuario) {
         try {
@@ -68,6 +73,11 @@ export function DetalleProductoScreen() {
       setStock(st);
       if (st.length > 0) setColorSelec(st[0].color);
       setEsFavorito(favorito);
+      setRecomendados(
+        todos
+          .filter((p: Producto) => p.id_categoria === prod.id_categoria && p.id_producto !== prod.id_producto)
+          .slice(0, 4)
+      );
       setCargando(false);
     })();
     return () => {
@@ -124,7 +134,13 @@ export function DetalleProductoScreen() {
         await agregarFavorito(usuario.numero_documento, id_producto);
         setEsFavorito(true);
       }
-    } catch {
+    } catch (err: any) {
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        await logout();
+        Alert.alert('Sesión expirada', 'Inicia sesión de nuevo para continuar.');
+        navigation.navigate('LoginScreen' as never);
+        return;
+      }
       Alert.alert('Error', 'No se pudo actualizar favoritos, intenta de nuevo.');
     }
   }
@@ -164,7 +180,7 @@ export function DetalleProductoScreen() {
         </View>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
           <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={20} color={colors.text} />
+            <Feather name="arrow-left" size={20} color={colors.onPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -173,7 +189,10 @@ export function DetalleProductoScreen() {
 
   return (
     <View style={styles.wrapper}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxxl }]}
+      >
         <View style={styles.imgWrap}>
           {imagenes.length > 0 ? (
             <FlatList
@@ -191,12 +210,14 @@ export function DetalleProductoScreen() {
               }}
               renderItem={({ item }) => (
                 <View style={styles.gallerySlide}>
-                  <Image source={{ uri: item.url_imagen }} style={styles.img} resizeMode="contain" />
+                  <Image source={{ uri: item.url_imagen }} style={styles.img} resizeMode="cover" />
                 </View>
               )}
             />
           ) : (
-            <Feather name="image" size={48} color={colors.textMuted} />
+            <View style={styles.imgPlaceholder}>
+              <Feather name="image" size={48} color={colors.textMuted} />
+            </View>
           )}
         </View>
 
@@ -230,6 +251,11 @@ export function DetalleProductoScreen() {
                 />
               ))}
             </View>
+            {!!colorSelec && (
+              <Text style={styles.colorSeleccionado}>
+                Color: {colorSelec.charAt(0).toUpperCase() + colorSelec.slice(1)}
+              </Text>
+            )}
           </>
         )}
 
@@ -285,23 +311,59 @@ export function DetalleProductoScreen() {
             onPress={agregarAlCarrito}
             disabled={!stockSelec || agotado}
           >
-            <Feather name="shopping-bag" size={16} color={colors.background} />
+            <Feather name="shopping-bag" size={16} color={colors.onPrimary} />
             <Text style={styles.agregarBtnText}>Añadir al carrito</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>
+
+      {recomendados.length > 0 && (
+        <View style={styles.recomendados}>
+          <Text style={styles.recomendadosTitulo}>También te puede interesar</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.recomendadosLista}
+          >
+            {recomendados.map((p) => {
+              const imagenRec = obtenerImagenPrincipal(p.imagenes_producto);
+              return (
+                <TouchableOpacity
+                  key={p.id_producto}
+                  style={styles.recomendadoCard}
+                  activeOpacity={0.85}
+                  onPress={() => (navigation as any).push('DetalleProductoScreen', { id_producto: p.id_producto })}
+                >
+                  <View style={styles.recomendadoImgWrap}>
+                    {imagenRec ? (
+                      <Image source={{ uri: imagenRec }} style={styles.recomendadoImg} resizeMode="cover" />
+                    ) : (
+                      <View style={styles.recomendadoImgPlaceholder}>
+                        <Feather name="image" size={22} color={colors.textMuted} />
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.recomendadoNombre} numberOfLines={1}>
+                    {p.nombre}
+                  </Text>
+                  <Text style={styles.recomendadoPrecio}>${Number(p.precio).toLocaleString()}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
       </ScrollView>
 
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
         <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={20} color={colors.text} />
+          <Feather name="arrow-left" size={20} color={colors.onPrimary} />
         </TouchableOpacity>
         <AnimatedHeartButton
           style={[styles.headerBtn, esFavorito && styles.favBtnActive]}
           activo={esFavorito}
           onPress={toggleFavorito}
           size={18}
-          colorInactivo={colors.text}
         />
       </View>
 
@@ -325,13 +387,13 @@ const styles = StyleSheet.create({
   cargandoTexto: { color: colors.textMuted, fontFamily: fonts.body },
   imgWrap: {
     height: SCREEN_WIDTH,
-    backgroundColor: '#111',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.backgroundInput,
+    overflow: 'hidden',
   },
-  img: { width: '85%', height: '85%' },
+  imgPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  img: { width: '100%', height: '100%' },
   gallery: { width: SCREEN_WIDTH, height: SCREEN_WIDTH },
-  gallerySlide: { width: SCREEN_WIDTH, height: SCREEN_WIDTH, alignItems: 'center', justifyContent: 'center' },
+  gallerySlide: { width: SCREEN_WIDTH, height: SCREEN_WIDTH },
   header: {
     position: 'absolute',
     top: 0,
@@ -346,7 +408,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.overlay,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -378,6 +440,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     marginBottom: spacing.md,
   },
+  colorSeleccionado: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
+  },
   wrapRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   colorBtn: { width: 36, height: 36, borderRadius: radius.pill, borderWidth: 2, borderColor: colors.border },
   colorBtnActivo: { borderColor: colors.primary },
@@ -391,7 +459,7 @@ const styles = StyleSheet.create({
   },
   tallaBtnActivo: { backgroundColor: colors.primary, borderColor: colors.primary },
   tallaBtnText: { color: colors.text, fontFamily: fonts.body, fontSize: 14 },
-  tallaBtnTextActivo: { color: colors.background },
+  tallaBtnTextActivo: { color: colors.onPrimary },
   stockRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xl },
   stockTexto: { fontFamily: fonts.bodySemiBold, fontSize: 13 },
   stepper: {
@@ -422,10 +490,30 @@ const styles = StyleSheet.create({
   },
   agregarBtnDisabled: { opacity: 0.5 },
   agregarBtnText: {
-    color: colors.background,
+    color: colors.onPrimary,
     fontFamily: fonts.bodyBold,
     fontSize: 13,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
+  recomendados: { marginTop: spacing.xxl, paddingLeft: spacing.xl },
+  recomendadosTitulo: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 15,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  recomendadosLista: { gap: spacing.md, paddingRight: spacing.xl },
+  recomendadoCard: { width: 140 },
+  recomendadoImgWrap: {
+    width: 140,
+    height: 140,
+    borderRadius: radius.card,
+    backgroundColor: colors.backgroundInput,
+    overflow: 'hidden',
+  },
+  recomendadoImg: { width: '100%', height: '100%' },
+  recomendadoImgPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  recomendadoNombre: { fontFamily: fonts.body, fontSize: 12, color: colors.text, marginTop: spacing.sm },
+  recomendadoPrecio: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.text, marginTop: 2 },
 });

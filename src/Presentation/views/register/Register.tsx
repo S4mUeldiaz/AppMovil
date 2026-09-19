@@ -9,6 +9,7 @@ import {
   ToastAndroid,
   Platform,
   Alert,
+  Modal,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -18,6 +19,14 @@ import { registrar, RegistroPayload } from '../../../Data/sources/remote/api/Aut
 import { colors, fonts, spacing } from '../../theme/AppTheme';
 
 type RegisterForm = RegistroPayload;
+
+const TIPOS_DOCUMENTO = [
+  { label: 'Cédula', value: 1 },
+  { label: 'C. extranjería', value: 2 },
+  { label: 'T. identidad', value: 3 },
+  { label: 'Pasaporte', value: 4 },
+  { label: 'NIT', value: 5 },
+];
 
 export function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -37,6 +46,9 @@ export function RegisterScreen() {
   const [verPassword, setVerPassword] = useState(false);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [tipoDocModalVisible, setTipoDocModalVisible] = useState(false);
+
+  const tipoDocSeleccionado = TIPOS_DOCUMENTO.find((t) => t.value === form.id_tipo_documento);
 
   function handleChange(campo: keyof RegisterForm, valor: string | number) {
     setForm((prev) => ({ ...prev, [campo]: valor }));
@@ -113,29 +125,24 @@ export function RegisterScreen() {
 
       <View style={styles.card}>
         <View style={styles.row}>
-          <View style={[styles.field, { flex: 0.6 }]}>
+          <View style={[styles.field, { flex: 0.8 }]}>
             <Text style={styles.label}>Tipo doc.</Text>
-            <View style={styles.group}>
+            <TouchableOpacity
+              style={styles.group}
+              onPress={() => setTipoDocModalVisible(true)}
+              activeOpacity={0.7}
+            >
               <Feather
                 name="credit-card"
                 size={16}
                 color={colors.textMuted}
                 style={styles.icon}
               />
-              <Picker
-                selectedValue={form.id_tipo_documento}
-                onValueChange={(valor) => handleChange('id_tipo_documento', valor)}
-                style={styles.picker}
-                dropdownIconColor={colors.textMuted}
-                mode="dropdown"
-              >
-                <Picker.Item label="Cédula" value={1} />
-                <Picker.Item label="C. extranjería" value={2} />
-                <Picker.Item label="T. identidad" value={3} />
-                <Picker.Item label="Pasaporte" value={4} />
-                <Picker.Item label="NIT" value={5} />
-              </Picker>
-            </View>
+              <Text style={styles.selectValue} numberOfLines={1}>
+                {tipoDocSeleccionado?.label}
+              </Text>
+              <Feather name="chevron-down" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
           </View>
           <View style={[styles.field, { flex: 1 }]}>
             <Text style={styles.label}>Número documento</Text>
@@ -275,6 +282,35 @@ export function RegisterScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <Modal
+        visible={tipoDocModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setTipoDocModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setTipoDocModalVisible(false)}
+        >
+          <TouchableOpacity style={styles.modalSheet} activeOpacity={1}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setTipoDocModalVisible(false)}>
+                <Text style={styles.modalDone}>Listo</Text>
+              </TouchableOpacity>
+            </View>
+            <Picker
+              selectedValue={form.id_tipo_documento}
+              onValueChange={(valor) => handleChange('id_tipo_documento', valor)}
+            >
+              {TIPOS_DOCUMENTO.map((tipo) => (
+                <Picker.Item key={tipo.value} label={tipo.label} value={tipo.value} />
+              ))}
+            </Picker>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   );
 }
@@ -358,10 +394,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.body,
   },
-  picker: {
+  selectValue: {
     flex: 1,
     color: colors.text,
-    height: 48,
+    paddingVertical: 12,
+    fontSize: 14,
+    fontFamily: fonts.body,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: colors.backgroundCard,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 24,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalDone: {
+    color: colors.primary,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
   },
   error: {
     color: colors.error,
@@ -380,7 +442,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: colors.background,
+    color: colors.onPrimary,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 1,

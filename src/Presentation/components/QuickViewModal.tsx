@@ -162,7 +162,7 @@ export function QuickViewModal({ idProducto, onClose, onAgregado }: QuickViewMod
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   card: {
     backgroundColor: colors.backgroundCard,
     borderTopLeftRadius: radius.lg,
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   close: { alignSelf: 'flex-end', marginBottom: spacing.sm },
   imgWrap: {
     height: 200,
-    backgroundColor: '#111',
+    backgroundColor: colors.backgroundInput,
     borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   label: { color: colors.textMuted, fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, marginTop: spacing.sm },
   wrapRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   colorBtn: { width: 32, height: 32, borderRadius: radius.pill, borderWidth: 2, borderColor: colors.border },
-  colorBtnActivo: { borderColor: colors.error },
+  colorBtnActivo: { borderColor: colors.primary },
   tallaBtn: {
     backgroundColor: colors.backgroundInput,
     borderWidth: 1,
@@ -195,9 +195,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  tallaBtnActivo: { backgroundColor: colors.error, borderColor: colors.error },
+  tallaBtnActivo: { backgroundColor: colors.primary, borderColor: colors.primary },
   tallaBtnText: { color: colors.text, fontSize: 13 },
-  tallaBtnTextActivo: { color: colors.text },
+  tallaBtnTextActivo: { color: colors.onPrimary },
   stockBajoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },
   stockBajoText: { color: colors.warning, fontSize: 12, fontWeight: '600' },
   cartBtn: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.xl,
   },
-  cartBtnText: { color: colors.background, fontSize: 13, fontWeight: '700', letterSpacing: 1 },
+  cartBtnText: { color: colors.onPrimary, fontSize: 13, fontWeight: '700', letterSpacing: 1 },
   detalleLink: {
     color: colors.textMuted,
     fontSize: 12,

@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   },
   tabActivo: { backgroundColor: colors.primary, borderColor: colors.primary },
   tabText: { color: colors.textMuted, fontFamily: fonts.bodyMedium, fontSize: 11 },
-  tabTextActivo: { color: colors.background },
+  tabTextActivo: { color: colors.onPrimary },
   buscador: {
     flexDirection: 'row',
     alignItems: 'center',
