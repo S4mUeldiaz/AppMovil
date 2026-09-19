@@ -23,7 +23,15 @@
     },
 
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "VELYSH necesita acceso a tus fotos para elegir tu imagen de perfil.",
+          "cameraPermission": "VELYSH necesita la cámara para tomar tu foto de perfil.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }
