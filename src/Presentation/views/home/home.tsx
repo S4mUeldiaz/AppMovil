@@ -1,11 +1,10 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
   ImageBackground,
-  Animated,
   ScrollView,
   StyleSheet,
   Dimensions,
@@ -27,14 +26,21 @@ import { TopNavbar } from '../../components/TopNavbar';
 import { AgregarCarritoModal, ItemAgregado } from '../../components/AgregarCarritoModal';
 import { AnimatedHeartButton } from '../../components/AnimatedHeartButton';
 import { BadgeAcento } from '../../components/BadgeAcento';
+import { BannerCategoria } from '../../components/BannerCategoria';
+import { useCategoriasConImagen, useProductosConBanners } from '../../hooks/useCategoriaBanners';
 
-const HERO_SCROLL_RANGE = 240;
 const MAS_VENDIDOS_COUNT = 8;
 const SKELETON_COUNT = 4;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = 12;
 const CARD_WIDTH = (SCREEN_WIDTH - 24 * 2 - CARD_GAP) / 2;
-const AnimatedScrollView = Animated.ScrollView;
+
+// Tratamiento editorial compartido por el hero y el banner "Colección 2026":
+// foto + degradado a overlayStrong + texto en onPrimary.
+const DEGRADADO_EDITORIAL = {
+  colors: ['transparent', colors.overlayStrong] as const,
+  locations: [0.35, 1] as const,
+};
 
 const ICONOS_CATEGORIA: Record<string, keyof typeof Feather.glyphMap> = {
   deportivo: 'activity',
@@ -64,8 +70,6 @@ export function HomeScreen() {
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
   const [confirmacion, setConfirmacion] = useState<ItemAgregado | null>(null);
-
-  const scrollY = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
     useCallback(() => {
@@ -125,7 +129,6 @@ export function HomeScreen() {
         setFavoritos((prev) => [...prev, id_producto]);
       }
     } catch {
-      // silencioso: un fallo de favoritos no debe bloquear la navegación de Home
     }
   }
 
@@ -140,14 +143,12 @@ export function HomeScreen() {
     [productos]
   );
 
-  const heroOpacity = scrollY.interpolate({ inputRange: [0, HERO_SCROLL_RANGE], outputRange: [1, 0], extrapolate: 'clamp' });
-  const heroScale = scrollY.interpolate({ inputRange: [0, HERO_SCROLL_RANGE], outputRange: [1, 0.6], extrapolate: 'clamp' });
-  const heroTranslateY = scrollY.interpolate({ inputRange: [0, HERO_SCROLL_RANGE], outputRange: [0, -30], extrapolate: 'clamp' });
+  const categoriasConImagen = useCategoriasConImagen(categorias, productos);
+  const productosConBanners = useProductosConBanners(productos, categoriasConImagen);
 
   function renderProducto(p: Producto, ancho: number, esMasVendido: boolean = false) {
     const esFavorito = favoritos.includes(p.id_producto);
     const imagen = obtenerImagenPrincipal(p.imagenes_producto);
-    // Nunca más de un acento ámbar por card: "más vendido" tiene prioridad sobre "nuevo".
     const esNuevo = !esMasVendido && esProductoNuevo(p.fecha_creacion);
 
     return (
@@ -160,7 +161,7 @@ export function HomeScreen() {
         <View style={styles.cardBody}>
           <View style={styles.cardImgWrap}>
             {imagen ? (
-              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
+              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="cover" />
             ) : (
               <View style={styles.cardImgPlaceholder}>
                 <Feather name="image" size={28} color={colors.textMuted} />
@@ -175,7 +176,7 @@ export function HomeScreen() {
               size={16}
             />
             <TouchableOpacity style={styles.quickViewBtn} onPress={() => setQuickViewId(p.id_producto)}>
-              <Feather name="eye" size={14} color={colors.text} />
+              <Feather name="eye" size={14} color={colors.onPrimary} />
               <Text style={styles.quickViewText}>Vista rápida</Text>
             </TouchableOpacity>
           </View>
@@ -195,7 +196,7 @@ export function HomeScreen() {
                 style={styles.cardBtn}
                 onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
               >
-                <Feather name="shopping-bag" size={12} color={colors.background} />
+                <Feather name="shopping-bag" size={12} color={colors.onPrimary} />
                 <Text style={styles.cardBtnText}>Ver</Text>
               </TouchableOpacity>
             </View>
@@ -209,38 +210,28 @@ export function HomeScreen() {
     <View style={styles.wrapper}>
       <TopNavbar onAbrirMenu={() => setSidebarAbierto(true)} usuario={usuario} />
 
-      <AnimatedScrollView
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
-        scrollEventThrottle={16}
-      >
-        {/* HERO */}
-        <ImageBackground source={require('../../../../assets/zapato_home.webp')} style={styles.hero} resizeMode="cover">
+      <ScrollView>
+        {/* HERO: foto + degradado + texto (mismo tratamiento que el banner "Colección 2026"). Sin monograma. */}
+        <ImageBackground source={require('../../../../assets/modelo_home.jpg')} style={styles.hero} resizeMode="cover">
           <LinearGradient
-            colors={['rgba(0,0,0,0.75)', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.55)']}
-            locations={[0, 0.4, 1]}
+            colors={DEGRADADO_EDITORIAL.colors}
+            locations={DEGRADADO_EDITORIAL.locations}
             style={StyleSheet.absoluteFill}
           />
-          <Animated.Text
-            style={[styles.heroLogo, { opacity: heroOpacity, transform: [{ translateY: heroTranslateY }, { scale: heroScale }] }]}
-          >
-            VELYSH
-          </Animated.Text>
-          <Animated.Text style={[styles.heroSub, { opacity: heroOpacity }]}>Nueva colección 2026</Animated.Text>
-          <Animated.View style={{ opacity: heroOpacity }}>
-            <TouchableOpacity style={styles.heroBtn} onPress={() => (navigation.navigate as any)('CatalogoScreen')}>
-              <Text style={styles.heroBtnText}>Ver catálogo →</Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <Text style={[styles.bannerEditorialTexto, styles.heroTitulo]}>Nueva colección 2026</Text>
+          <TouchableOpacity style={styles.heroBtn} onPress={() => (navigation.navigate as any)('CatalogoScreen')}>
+            <Text style={styles.heroBtnText}>Ver catálogo →</Text>
+          </TouchableOpacity>
         </ImageBackground>
 
         {/* BANNER DE CARRITO PENDIENTE */}
         {itemsCarrito > 0 && (
           <TouchableOpacity style={styles.banner} onPress={() => navigation.navigate('CarritoScreen' as never)}>
-            <Feather name="shopping-bag" size={16} color={colors.background} />
+            <Feather name="shopping-bag" size={16} color={colors.onPrimary} />
             <Text style={styles.bannerTexto}>
               Tienes {itemsCarrito} producto{itemsCarrito === 1 ? '' : 's'} en tu carrito
             </Text>
-            <Feather name="arrow-right" size={16} color={colors.background} />
+            <Feather name="arrow-right" size={16} color={colors.onPrimary} />
           </TouchableOpacity>
         )}
 
@@ -279,6 +270,22 @@ export function HomeScreen() {
           </>
         )}
 
+        {/* BANNER EDITORIAL */}
+        <TouchableOpacity activeOpacity={0.9} onPress={() => (navigation.navigate as any)('CatalogoScreen')}>
+          <ImageBackground
+            source={require('../../../../assets/coleccion_2026.avif')}
+            style={styles.bannerEditorial}
+            resizeMode="cover"
+          >
+            <LinearGradient
+              colors={DEGRADADO_EDITORIAL.colors}
+              locations={DEGRADADO_EDITORIAL.locations}
+              style={StyleSheet.absoluteFill}
+            />
+            <Text style={styles.bannerEditorialTexto}>Colección 2026</Text>
+          </ImageBackground>
+        </TouchableOpacity>
+
         {/* TODOS LOS PRODUCTOS */}
         <View style={styles.sectionDivider} />
         <Text style={styles.sectionTitle}>Todos los productos</Text>
@@ -297,11 +304,26 @@ export function HomeScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.grid}>{productos.map((p) => renderProducto(p, CARD_WIDTH))}</View>
+          <View style={styles.grid}>
+            {productosConBanners.map((item) => {
+              if (item.tipo === 'producto') return renderProducto(item.producto, CARD_WIDTH);
+              // El spacer solo sirve para emparejar filas en un FlatList numColumns=2;
+              // en este grid flexWrap el banner ya ocupa la fila completa por su ancho.
+              if (item.tipo === 'spacer') return null;
+              return (
+                <BannerCategoria
+                  key={item.id}
+                  imagen={item.imagen}
+                  nombre={item.categoria.nombre_categoria}
+                  onPress={() => (navigation.navigate as any)('CatalogoScreen', { categoria: item.categoria.id_categoria })}
+                />
+              );
+            })}
+          </View>
         )}
 
         <Footer />
-      </AnimatedScrollView>
+      </ScrollView>
 
       <QuickViewModal idProducto={quickViewId} onClose={() => setQuickViewId(null)} onAgregado={setConfirmacion} />
 
@@ -326,40 +348,39 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: colors.background },
-  hero: {
-    minHeight: 260,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  heroLogo: {
-    fontFamily: fonts.display,
-    fontSize: 48,
-    letterSpacing: 6,
-    color: colors.text,
-  },
-  heroSub: {
-    marginTop: 16,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    color: colors.text,
-  },
+  // Foto 1080x1351 (4:5). Se probaron alturas de 1.0x, 1.1x y 1.25x el ancho: solo ~1.25x (la
+  // proporción nativa) deja el rostro y ambas zapatillas completos con el piso libre para el texto.
+  hero: { width: '100%', aspectRatio: 1080 / 1351, justifyContent: 'flex-end', overflow: 'hidden' },
+  heroTitulo: { paddingBottom: spacing.sm },
   heroBtn: {
-    marginTop: 20,
+    alignSelf: 'flex-start',
+    marginLeft: 24,
+    marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.text,
+    borderColor: colors.onPrimary,
     borderRadius: radius.pill,
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 24,
   },
   heroBtnText: {
-    color: colors.text,
+    color: colors.onPrimary,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 1,
     textTransform: 'uppercase',
+  },
+  bannerEditorial: {
+    height: 320,
+    marginTop: spacing.xxxl,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  bannerEditorialTexto: {
+    fontFamily: fonts.display,
+    fontSize: 30,
+    color: colors.onPrimary,
+    paddingHorizontal: 24,
+    paddingBottom: spacing.xl,
   },
   banner: {
     flexDirection: 'row',
@@ -372,7 +393,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     paddingVertical: spacing.md,
   },
-  bannerTexto: { color: colors.background, fontFamily: fonts.bodySemiBold, fontSize: 13 },
+  bannerTexto: { color: colors.onPrimary, fontFamily: fonts.bodySemiBold, fontSize: 13 },
   sectionDivider: {
     height: 1,
     backgroundColor: colors.border,
@@ -445,9 +466,9 @@ const styles = StyleSheet.create({
   // Recorta imagen/info a las esquinas redondeadas; separado de `card` para que
   // la sombra (que overflow:hidden recortaría en iOS) sí se vea.
   cardBody: { borderRadius: 12, overflow: 'hidden' },
-  cardImgWrap: { height: 160, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' },
-  cardImg: { width: '80%', height: '80%' },
-  cardImgPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+  cardImgWrap: { height: 160, backgroundColor: colors.backgroundInput },
+  cardImg: { width: '100%', height: '100%' },
+  cardImgPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   cardBadge: { position: 'absolute', top: 8, left: 8 },
   favBtn: {
     position: 'absolute',
@@ -456,7 +477,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.overlay,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -468,13 +489,13 @@ const styles = StyleSheet.create({
     right: 8,
     height: 30,
     borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: colors.overlayStrong,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
   },
-  quickViewText: { color: colors.text, fontSize: 11, fontWeight: '500' },
+  quickViewText: { color: colors.onPrimary, fontSize: 11, fontWeight: '500' },
   cardInfo: { padding: 12 },
   cardCategoria: { fontSize: 10, color: colors.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   cardNombre: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 2 },
@@ -490,7 +511,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
-  cardBtnText: { color: colors.background, fontSize: 11, fontWeight: '600' },
+  cardBtnText: { color: colors.onPrimary, fontSize: 11, fontWeight: '600' },
   emptyState: { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 32 },
   emptyTitle: { color: colors.text, fontSize: 15, fontWeight: '600', textAlign: 'center', marginTop: 12 },
   emptyBtn: {

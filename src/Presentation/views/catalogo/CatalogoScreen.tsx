@@ -1,16 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  Image,
-  Modal,
-  StyleSheet,
-  Dimensions,
-  Alert,
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, FlatList, Image, Modal, StyleSheet, Dimensions, Alert} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { useNavigation, useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
@@ -26,6 +15,7 @@ import { esProductoNuevo } from '../../utils/producto';
 import { colors, fonts, spacing, radius, shadow } from '../../theme/AppTheme';
 import { Sidebar } from '../../components/Sidebar';
 import { useSidebar } from '../../hooks/useSidebar';
+import { useCategoriasConImagen } from '../../hooks/useCategoriaBanners';
 import { QuickViewModal } from '../../components/QuickViewModal';
 import { AgregarCarritoModal, ItemAgregado } from '../../components/AgregarCarritoModal';
 import { AnimatedHeartButton } from '../../components/AnimatedHeartButton';
@@ -219,9 +209,33 @@ export function CatalogoScreen() {
     });
   }, [productos, busqueda, categoriaActiva, generoActivo, precioMin, precioMax, coloresSelec, tallasSelec, variantesPorProducto]);
 
+  const categoriasConImagen = useCategoriasConImagen(categorias, productos);
+
+  const categoriaActivaNombre = categorias.find((c) => c.id_categoria === categoriaActiva)?.nombre_categoria ?? null;
+
+  const bannerTopImagen = categoriaActiva
+    ? categoriasConImagen.find((c) => c.categoria.id_categoria === categoriaActiva)?.imagen ?? null
+    : categoriasConImagen[0]?.imagen ?? null;
+
   function renderHeader() {
     return (
       <View>
+        <View style={styles.bannerTop}>
+          {bannerTopImagen ? (
+            <Image source={{ uri: bannerTopImagen }} style={styles.bannerTopImg} resizeMode="cover" />
+          ) : (
+            <View style={styles.bannerTopImgPlaceholder}>
+              <Feather name="image" size={36} color={colors.textMuted} />
+            </View>
+          )}
+          <Text style={styles.bannerTopTitulo}>{categoriaActivaNombre ?? 'Colección completa'}</Text>
+          <Text style={styles.bannerTopSubtitulo}>
+            {categoriaActivaNombre
+              ? `Todo lo nuevo en ${categoriaActivaNombre}`
+              : 'Explora todo nuestro catálogo en un solo lugar'}
+          </Text>
+        </View>
+
         <View style={styles.searchSection}>
           <View style={styles.searchBar}>
             <Feather name="search" size={18} color={colors.textMuted} />
@@ -237,8 +251,8 @@ export function CatalogoScreen() {
             style={[styles.filtrosBtn, hayFiltrosActivos && styles.filtrosBtnActivo]}
             onPress={() => setFiltrosVisibles(true)}
           >
-            <Feather name="filter" size={14} color={hayFiltrosActivos ? colors.error : colors.text} />
-            <Text style={[styles.filtrosBtnText, hayFiltrosActivos && { color: colors.error }]}>Filtros</Text>
+            <Feather name="filter" size={14} color={hayFiltrosActivos ? colors.primary : colors.text} />
+            <Text style={[styles.filtrosBtnText, hayFiltrosActivos && { color: colors.primary }]}>Filtros</Text>
             {hayFiltrosActivos && <View style={styles.filtrosDot} />}
           </TouchableOpacity>
         </View>
@@ -302,7 +316,7 @@ export function CatalogoScreen() {
         <View style={styles.cardBody}>
           <View style={styles.cardImgWrap}>
             {imagen ? (
-              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="contain" />
+              <Image source={{ uri: imagen }} style={styles.cardImg} resizeMode="cover" />
             ) : (
               <View style={styles.cardImgPlaceholder}>
                 <Feather name="image" size={28} color={colors.textMuted} />
@@ -316,7 +330,7 @@ export function CatalogoScreen() {
               size={16}
             />
             <TouchableOpacity style={styles.quickViewBtn} onPress={() => setQuickViewId(p.id_producto)}>
-              <Feather name="eye" size={14} color={colors.text} />
+              <Feather name="eye" size={14} color={colors.onPrimary} />
               <Text style={styles.quickViewText}>Vista rápida</Text>
             </TouchableOpacity>
           </View>
@@ -336,7 +350,7 @@ export function CatalogoScreen() {
                 style={styles.cardBtn}
                 onPress={() => (navigation.navigate as any)('DetalleProductoScreen', { id_producto: p.id_producto })}
               >
-                <Feather name="shopping-bag" size={12} color={colors.background} />
+                <Feather name="shopping-bag" size={12} color={colors.onPrimary} />
                 <Text style={styles.cardBtnText}>Ver</Text>
               </TouchableOpacity>
             </View>
@@ -428,9 +442,9 @@ export function CatalogoScreen() {
               maximumValue={precioMaxAbsoluto}
               value={precioMin}
               onValueChange={(v) => setPrecioMin(Math.min(v, precioMax))}
-              minimumTrackTintColor={colors.error}
+              minimumTrackTintColor={colors.primary}
               maximumTrackTintColor={colors.border}
-              thumbTintColor={colors.error}
+              thumbTintColor={colors.primary}
             />
             <Text style={styles.sliderCaption}>Máximo</Text>
             <Slider
@@ -438,9 +452,9 @@ export function CatalogoScreen() {
               maximumValue={precioMaxAbsoluto}
               value={precioMax}
               onValueChange={(v) => setPrecioMax(Math.max(v, precioMin))}
-              minimumTrackTintColor={colors.error}
+              minimumTrackTintColor={colors.primary}
               maximumTrackTintColor={colors.border}
-              thumbTintColor={colors.error}
+              thumbTintColor={colors.primary}
             />
 
             <View style={styles.filtroAcciones}>
@@ -481,6 +495,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
+  bannerTop: {
+    marginHorizontal: 24,
+    marginBottom: 20,
+    backgroundColor: colors.backgroundCard,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  bannerTopImg: { height: 120, width: '100%', backgroundColor: colors.backgroundInput },
+  bannerTopImgPlaceholder: {
+    height: 120,
+    backgroundColor: colors.backgroundInput,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerTopTitulo: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  bannerTopSubtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    marginTop: 4,
+  },
   searchSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -512,9 +557,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
-  filtrosBtnActivo: { borderColor: colors.error },
+  filtrosBtnActivo: { borderColor: colors.primary },
   filtrosBtnText: { color: colors.text, fontSize: 12, fontWeight: '600' },
-  filtrosDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.error },
+  filtrosDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary },
   pillsRow: { paddingLeft: 24, marginBottom: 12 },
   pill: {
     backgroundColor: colors.backgroundCard,
@@ -527,7 +572,7 @@ const styles = StyleSheet.create({
   },
   pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   pillText: { fontSize: 13, fontWeight: '500', color: colors.textMuted },
-  pillTextActive: { color: colors.background },
+  pillTextActive: { color: colors.onPrimary },
   skeletonGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: CARD_GAP, paddingHorizontal: 24 },
   skeletonCard: {
     width: CARD_WIDTH,
@@ -548,9 +593,9 @@ const styles = StyleSheet.create({
   },
   cardBody: { borderRadius: 12, overflow: 'hidden' },
   cardBadge: { position: 'absolute', top: 8, left: 8 },
-  cardImgWrap: { height: 160, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' },
-  cardImg: { width: '80%', height: '80%' },
-  cardImgPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+  cardImgWrap: { height: 160, backgroundColor: colors.backgroundInput },
+  cardImg: { width: '100%', height: '100%' },
+  cardImgPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   favBtn: {
     position: 'absolute',
     top: 8,
@@ -558,7 +603,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.overlay,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -570,13 +615,13 @@ const styles = StyleSheet.create({
     right: 8,
     height: 30,
     borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: colors.overlayStrong,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
   },
-  quickViewText: { color: colors.text, fontSize: 11, fontWeight: '500' },
+  quickViewText: { color: colors.onPrimary, fontSize: 11, fontWeight: '500' },
   cardInfo: { padding: 12 },
   cardCategoria: { fontSize: 10, color: colors.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   cardNombre: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 2 },
@@ -592,7 +637,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
-  cardBtnText: { color: colors.background, fontSize: 11, fontWeight: '600' },
+  cardBtnText: { color: colors.onPrimary, fontSize: 11, fontWeight: '600' },
   emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 32 },
   emptyTitle: { color: colors.text, fontSize: 15, fontWeight: '600', textAlign: 'center', marginTop: 12 },
   emptySubtitle: { color: colors.textMuted, fontSize: 13, textAlign: 'center', marginTop: 6 },
@@ -606,7 +651,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   emptyBtnText: { color: colors.text, fontSize: 13, fontWeight: '600' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   filtrosPanel: {
     backgroundColor: colors.backgroundCard,
     borderTopLeftRadius: 20,
@@ -619,7 +664,7 @@ const styles = StyleSheet.create({
   filtroLabel: { color: colors.textMuted, fontSize: 13, fontWeight: '600', marginBottom: 10, marginTop: 8 },
   coloresWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   colorBtn: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: colors.border },
-  colorBtnActivo: { borderColor: colors.error },
+  colorBtnActivo: { borderColor: colors.primary },
   tallasWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tallaBtn: {
     backgroundColor: colors.backgroundInput,
@@ -629,9 +674,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
-  tallaBtnActivo: { backgroundColor: colors.error, borderColor: colors.error },
+  tallaBtnActivo: { backgroundColor: colors.primary, borderColor: colors.primary },
   tallaBtnText: { color: colors.text, fontSize: 13 },
-  tallaBtnTextActivo: { color: colors.text },
+  tallaBtnTextActivo: { color: colors.onPrimary },
   precioLabels: { color: colors.textMuted, fontSize: 13, marginBottom: 4 },
   sliderCaption: { color: colors.textMuted, fontSize: 11, marginTop: 4 },
   filtroAcciones: { flexDirection: 'row', gap: 10, marginTop: 16 },
@@ -645,6 +690,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filtroLimpiarText: { color: colors.text, fontSize: 13, fontWeight: '700' },
-  filtroAplicarBtn: { flex: 1, backgroundColor: colors.error, borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
-  filtroAplicarText: { color: colors.text, fontSize: 13, fontWeight: '700' },
+  filtroAplicarBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
+  filtroAplicarText: { color: colors.onPrimary, fontSize: 13, fontWeight: '700' },
 });
