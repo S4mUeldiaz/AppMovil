@@ -1,23 +1,17 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Image, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { UsuarioSesion } from '../../Data/sources/remote/api/Authapi';
 import { colors, fonts, spacing } from '../theme/AppTheme';
 
 interface TopNavbarProps {
   onAbrirMenu: () => void;
-  /** Texto fijo (ej. "Mi carrito"). Si se pasa `usuario`, este prop se ignora y se muestra un saludo. */
-  titulo?: string;
-  /** Cuando se pasa (incluso null), la barra muestra un saludo personalizado en vez de `titulo`. */
-  usuario?: UsuarioSesion | null;
 }
 
-export function TopNavbar({ onAbrirMenu, titulo, usuario }: TopNavbarProps) {
+export function TopNavbar({ onAbrirMenu }: TopNavbarProps) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const modoSaludo = usuario !== undefined;
   const [buscando, setBuscando] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const inputRef = useRef<TextInput>(null);
@@ -69,15 +63,12 @@ export function TopNavbar({ onAbrirMenu, titulo, usuario }: TopNavbarProps) {
       </TouchableOpacity>
 
       <View style={styles.centro}>
-        {modoSaludo ? (
-          <Text style={styles.saludo} numberOfLines={1}>
-            {usuario ? `Hola, ${usuario.nombre}` : 'Hola 👋'}
-          </Text>
-        ) : (
-          <Text style={styles.titulo} numberOfLines={1}>
-            {titulo}
-          </Text>
-        )}
+        <Image
+          source={require('../../../assets/brand/wordmark.png')}
+          style={styles.logo}
+          resizeMode="contain"
+          accessibilityLabel="VELYSH"
+        />
       </View>
 
       <View style={styles.acciones}>
@@ -99,9 +90,8 @@ const styles = StyleSheet.create({
     zIndex: 250,
   },
   iconBtn: { padding: spacing.xs },
-  centro: { flex: 1, paddingHorizontal: spacing.sm },
-  saludo: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: colors.text },
-  titulo: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
+  centro: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.sm },
+  logo: { width: 64, height: 22 },
   acciones: { flexDirection: 'row', gap: spacing.sm },
   searchBar: {
     flex: 1,

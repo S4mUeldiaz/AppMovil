@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AppMovil",
+    "name": "VELYSH",
     "slug": "AppMovil",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -24,6 +24,15 @@
 
     "plugins": [
       "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain"
+        }
+      ],
       [
         "expo-image-picker",
         {

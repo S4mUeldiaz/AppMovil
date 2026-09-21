@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   Animated,
+  Image,
   StyleSheet,
   Dimensions,
   Alert,
@@ -83,9 +84,17 @@ export function Sidebar({ abierto, onCerrar, usuario, onLogout }: SidebarProps) 
       <Animated.View
         style={[styles.sidebar, { paddingTop: insets.top + spacing.xl, transform: [{ translateX }] }]}
       >
-        <TouchableOpacity style={styles.closeBtn} onPress={onCerrar}>
-          <Feather name="x" size={22} color={colors.text} />
-        </TouchableOpacity>
+        <View style={styles.header}>
+          <Image
+            source={require('../../../assets/brand/wordmark.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityLabel="VELYSH"
+          />
+          <TouchableOpacity onPress={onCerrar}>
+            <Feather name="x" size={22} color={colors.text} />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.nav}>
           <TouchableOpacity style={styles.link} onPress={irAPedidos}>
@@ -162,9 +171,15 @@ const styles = StyleSheet.create({
     zIndex: 300,
     padding: 24,
   },
-  closeBtn: {
-    alignSelf: 'flex-start',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 32,
+  },
+  logo: {
+    width: 84,
+    height: 29,
   },
   nav: {
     flex: 1,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,6 +23,12 @@ export function AdminHeader({ titulo, subtitulo }: AdminHeaderProps) {
   return (
     <View style={[styles.wrapper, { paddingTop: insets.top + spacing.sm }]}>
       <View>
+        <Image
+          source={require('../../../assets/brand/wordmark.png')}
+          style={styles.logo}
+          resizeMode="contain"
+          accessibilityLabel="VELYSH"
+        />
         <Text style={styles.titulo}>{titulo}</Text>
         {!!subtitulo && <Text style={styles.subtitulo}>{subtitulo}</Text>}
       </View>
@@ -42,6 +48,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     backgroundColor: colors.background,
   },
+  logo: { width: 58, height: 20, marginBottom: spacing.sm, alignSelf: 'flex-start' },
   titulo: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
   subtitulo: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 2 },
   logoutBtn: { padding: spacing.xs },

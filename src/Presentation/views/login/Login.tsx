@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Image,
   StyleSheet,
   ToastAndroid,
   Platform,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { BackButton } from '../../components/BackButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { login } from '../../../Data/sources/remote/api/Authapi';
 import { colors, fonts, spacing } from '../../theme/AppTheme';
@@ -57,16 +59,15 @@ export function LoginScreen() {
       contentContainerStyle={[styles.wrapperContent, { paddingTop: insets.top + spacing.lg }]}
     >
       <View style={styles.topbar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          accessibilityLabel="Volver"
-        >
-          <Feather name="arrow-left" size={20} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.logo}>VELYSH</Text>
-        <View style={styles.backButton} />
+        <BackButton />
       </View>
+
+      <Image
+        source={require('../../../../assets/brand/wordmark.png')}
+        style={styles.logo}
+        resizeMode="contain"
+        accessibilityLabel="VELYSH"
+      />
 
       <Text style={styles.title}>¿Deseas iniciar sesión?</Text>
 
@@ -156,18 +157,12 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 40,
-  },
-  backButton: {
-    width: 32,
+    marginBottom: 16,
   },
   logo: {
-    flex: 1,
-    textAlign: 'center',
-    fontFamily: fonts.display,
-    fontSize: 26,
-    letterSpacing: 6,
-    color: colors.text,
+    width: 200,
+    height: 70,
+    marginBottom: 32,
   },
   title: {
     fontFamily: fonts.display,

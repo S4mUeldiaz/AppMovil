@@ -20,6 +20,8 @@ const COLOR_HEX: Record<string, string> = {
   plateado: '#c0c0c0',
   vinotinto: '#7c1f2a',
   turquesa: '#2dd4bf',
+  marfil: '#fdf6e2',
+  marfíl: '#fdf6e2',
 };
 
 export function getColorHex(nombreColor?: string | null): string {
