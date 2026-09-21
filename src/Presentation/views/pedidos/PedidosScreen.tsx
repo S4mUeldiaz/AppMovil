@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BackHeader } from '../../components/BackHeader';
 import { getPedidosPorUsuario, PedidoConDetalle } from '../../../Data/sources/remote/api/PedidosApi';
 import { obtenerImagenPrincipal } from '../../utils/imagenes';
 import { Sidebar } from '../../components/Sidebar';
@@ -27,7 +27,6 @@ function colorEstado(estado: string) {
 
 export function PedidosScreen() {
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
   const { abierto, abrir, cerrar, usuario, cerrarSesion } = useSidebar();
   const [pedidos, setPedidos] = useState<PedidoConDetalle[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -96,10 +95,14 @@ export function PedidosScreen() {
 
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity style={[styles.menuBtn, { top: insets.top + spacing.sm }]} onPress={abrir}>
-        <Feather name="menu" size={22} color={colors.text} />
-      </TouchableOpacity>
-      <Text style={[styles.titulo, { marginTop: insets.top + spacing.xxl }]}>Mis pedidos</Text>
+      <BackHeader
+        titulo="Mis pedidos"
+        right={
+          <TouchableOpacity onPress={abrir} accessibilityLabel="Abrir menú">
+            <Feather name="menu" size={22} color={colors.text} />
+          </TouchableOpacity>
+        }
+      />
 
       {!usuario ? (
         <View style={styles.emptyState}>
@@ -140,14 +143,6 @@ export function PedidosScreen() {
 
 const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: colors.background },
-  menuBtn: { position: 'absolute', left: spacing.xl, zIndex: 10 },
-  titulo: {
-    fontFamily: fonts.display,
-    fontSize: 24,
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
   lista: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.md },
   card: {
     flexDirection: 'row',

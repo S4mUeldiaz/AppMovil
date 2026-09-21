@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { BackButton } from '../../components/BackButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../../../../App';
 import { obtenerUsuarioActual, logout } from '../../../Data/sources/remote/api/Authapi';
@@ -179,9 +180,7 @@ export function DetalleProductoScreen() {
           <Text style={styles.cargandoTexto}>Cargando...</Text>
         </View>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
-          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={20} color={colors.onPrimary} />
-          </TouchableOpacity>
+          <BackButton variant="overlay" />
         </View>
       </View>
     );
@@ -356,9 +355,7 @@ export function DetalleProductoScreen() {
       </ScrollView>
 
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
-        <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={20} color={colors.onPrimary} />
-        </TouchableOpacity>
+        <BackButton variant="overlay" />
         <AnimatedHeartButton
           style={[styles.headerBtn, esFavorito && styles.favBtnActive]}
           activo={esFavorito}
@@ -405,8 +402,8 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   headerBtn: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: radius.pill,
     backgroundColor: colors.overlay,
     alignItems: 'center',

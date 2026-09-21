@@ -22,6 +22,7 @@ import { colors, fonts, spacing, radius, shadow } from '../../theme/AppTheme';
 import { Sidebar } from '../../components/Sidebar';
 import { Footer } from '../../components/Footer';
 import { QuickViewModal } from '../../components/QuickViewModal';
+import { QuickViewButton } from '../../components/QuickViewButton';
 import { TopNavbar } from '../../components/TopNavbar';
 import { AgregarCarritoModal, ItemAgregado } from '../../components/AgregarCarritoModal';
 import { AnimatedHeartButton } from '../../components/AnimatedHeartButton';
@@ -175,11 +176,8 @@ export function HomeScreen() {
               onPress={() => toggleFavorito(p.id_producto)}
               size={16}
             />
-            <TouchableOpacity style={styles.quickViewBtn} onPress={() => setQuickViewId(p.id_producto)}>
-              <Feather name="eye" size={14} color={colors.onPrimary} />
-              <Text style={styles.quickViewText}>Vista rápida</Text>
-            </TouchableOpacity>
           </View>
+          <QuickViewButton onPress={() => setQuickViewId(p.id_producto)} />
           <View style={styles.cardInfo}>
             <Text style={styles.cardCategoria} numberOfLines={1}>
               {p.categorias?.nombre_categoria ?? ''}
@@ -208,7 +206,7 @@ export function HomeScreen() {
 
   return (
     <View style={styles.wrapper}>
-      <TopNavbar onAbrirMenu={() => setSidebarAbierto(true)} usuario={usuario} />
+      <TopNavbar onAbrirMenu={() => setSidebarAbierto(true)} />
 
       <ScrollView>
         {/* HERO: foto + degradado + texto (mismo tratamiento que el banner "Colección 2026"). Sin monograma. */}
@@ -348,8 +346,6 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: colors.background },
-  // Foto 1080x1351 (4:5). Se probaron alturas de 1.0x, 1.1x y 1.25x el ancho: solo ~1.25x (la
-  // proporción nativa) deja el rostro y ambas zapatillas completos con el piso libre para el texto.
   hero: { width: '100%', aspectRatio: 1080 / 1351, justifyContent: 'flex-end', overflow: 'hidden' },
   heroTitulo: { paddingBottom: spacing.sm },
   heroBtn: {
@@ -408,7 +404,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     paddingHorizontal: 24,
   },
-  // "Categorías": sección utilitaria — menos aire alrededor.
+  // "Categorías"
   sectionTitleCompacta: {
     fontFamily: fonts.displayBold,
     fontSize: 18,
@@ -417,7 +413,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     paddingHorizontal: 24,
   },
-  // "Más vendidos": sección destacada — más aire y mayor tamaño.
+  // "Más vendidos"
   sectionTitleDestacada: {
     fontFamily: fonts.displayBold,
     fontSize: 24,
@@ -463,8 +459,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     ...shadow.card,
   },
-  // Recorta imagen/info a las esquinas redondeadas; separado de `card` para que
-  // la sombra (que overflow:hidden recortaría en iOS) sí se vea.
   cardBody: { borderRadius: 12, overflow: 'hidden' },
   cardImgWrap: { height: 160, backgroundColor: colors.backgroundInput },
   cardImg: { width: '100%', height: '100%' },
@@ -482,20 +476,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   favBtnActive: { backgroundColor: colors.primary },
-  quickViewBtn: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-    right: 8,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: colors.overlayStrong,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  quickViewText: { color: colors.onPrimary, fontSize: 11, fontWeight: '500' },
   cardInfo: { padding: 12 },
   cardCategoria: { fontSize: 10, color: colors.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   cardNombre: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 2 },

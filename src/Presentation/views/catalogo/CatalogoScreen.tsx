@@ -17,6 +17,7 @@ import { Sidebar } from '../../components/Sidebar';
 import { useSidebar } from '../../hooks/useSidebar';
 import { useCategoriasConImagen } from '../../hooks/useCategoriaBanners';
 import { QuickViewModal } from '../../components/QuickViewModal';
+import { QuickViewButton } from '../../components/QuickViewButton';
 import { AgregarCarritoModal, ItemAgregado } from '../../components/AgregarCarritoModal';
 import { AnimatedHeartButton } from '../../components/AnimatedHeartButton';
 import { BadgeAcento } from '../../components/BadgeAcento';
@@ -101,8 +102,6 @@ export function CatalogoScreen() {
     cargarDatos();
   }, [cargarDatos]);
 
-  // Preselecciona la categoría recibida por parámetro (ej. desde el Footer o el Sidebar),
-  // aceptando id numérico o nombre de texto (case-insensitive), igual que en el web.
   useEffect(() => {
     if (!route.params?.categoria || categorias.length === 0) return;
     const param = route.params.categoria;
@@ -329,11 +328,8 @@ export function CatalogoScreen() {
               onPress={() => toggleFavorito(p.id_producto)}
               size={16}
             />
-            <TouchableOpacity style={styles.quickViewBtn} onPress={() => setQuickViewId(p.id_producto)}>
-              <Feather name="eye" size={14} color={colors.onPrimary} />
-              <Text style={styles.quickViewText}>Vista rápida</Text>
-            </TouchableOpacity>
           </View>
+          <QuickViewButton onPress={() => setQuickViewId(p.id_producto)} />
           <View style={styles.cardInfo}>
             <Text style={styles.cardCategoria} numberOfLines={1}>
               {p.categorias?.nombre_categoria ?? ''}
@@ -608,20 +604,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   favBtnActive: { backgroundColor: colors.primary },
-  quickViewBtn: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-    right: 8,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: colors.overlayStrong,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  quickViewText: { color: colors.onPrimary, fontSize: 11, fontWeight: '500' },
   cardInfo: { padding: 12 },
   cardCategoria: { fontSize: 10, color: colors.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   cardNombre: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 2 },

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp, CommonActions } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BackHeader } from '../../components/BackHeader';
 import { RootStackParamList } from '../../../../App';
 import { colors, fonts, radius, spacing } from '../../theme/AppTheme';
 
@@ -17,7 +17,6 @@ type ComprobanteRoute = RouteProp<RootStackParamList, 'ComprobanteScreen'>;
 
 export function ComprobanteScreen() {
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
   const { params } = useRoute<ComprobanteRoute>();
   const { referencias, items, metodoPago, direccionTexto, total } = params;
 
@@ -25,64 +24,67 @@ export function ComprobanteScreen() {
 
   function verPedidos() {
     navigation.dispatch(
-      CommonActions.reset({ index: 0, routes: [{ name: 'PedidosScreen' as never }] })
+      CommonActions.reset({
+        index: 1,
+        routes: [{ name: 'MainTabs' as never }, { name: 'PedidosScreen' as never }],
+      })
     );
   }
 
   return (
-    <ScrollView
-      style={styles.wrapper}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]}
-    >
-      <View style={styles.exito}>
-        <Feather name="check-circle" size={48} color={colors.primary} />
-        <Text style={styles.titulo}>Pago confirmado</Text>
-        <Text style={styles.subtitulo}>
-          Este es un pago simulado para fines de demostración del proyecto VELYSH — no se realizó ningún cargo real.
-        </Text>
-      </View>
+    <View style={styles.wrapper}>
+      <BackHeader />
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.exito}>
+          <Feather name="check-circle" size={48} color={colors.primary} />
+          <Text style={styles.titulo}>Pago confirmado</Text>
+          <Text style={styles.subtitulo}>
+            Este es un pago simulado para fines de demostración del proyecto VELYSH — no se realizó ningún cargo real.
+          </Text>
+        </View>
 
-      <View style={styles.card}>
-        <View style={styles.fila}>
-          <Text style={styles.filaLabel}>Referencia(s) de pedido</Text>
-          <Text style={styles.filaValor}>{referencias.join(', ')}</Text>
-        </View>
-        <View style={styles.fila}>
-          <Text style={styles.filaLabel}>Dirección de entrega</Text>
-          <Text style={styles.filaValor}>{direccionTexto}</Text>
-        </View>
-        <View style={styles.fila}>
-          <Text style={styles.filaLabel}>Método de pago</Text>
-          <Text style={styles.filaValor}>{ETIQUETAS_METODO_PAGO[metodoPago] ?? metodoPago}</Text>
-        </View>
-        <View style={styles.fila}>
-          <Text style={styles.filaLabel}>Fecha</Text>
-          <Text style={styles.filaValor}>{fecha}</Text>
-        </View>
-      </View>
-
-      <View style={styles.card}>
-        {items.map((item) => (
-          <View key={item.id_stock} style={styles.itemRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.itemNombre}>{item.nombre}</Text>
-              <Text style={styles.itemDetalle}>
-                {item.color} / {item.talla} · x{item.cantidad}
-              </Text>
-            </View>
-            <Text style={styles.itemSubtotal}>${(item.precio * item.cantidad).toLocaleString()}</Text>
+        <View style={styles.card}>
+          <View style={styles.fila}>
+            <Text style={styles.filaLabel}>Referencia(s) de pedido</Text>
+            <Text style={styles.filaValor}>{referencias.join(', ')}</Text>
           </View>
-        ))}
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total pagado</Text>
-          <Text style={styles.totalValor}>${total.toLocaleString()}</Text>
+          <View style={styles.fila}>
+            <Text style={styles.filaLabel}>Dirección de entrega</Text>
+            <Text style={styles.filaValor}>{direccionTexto}</Text>
+          </View>
+          <View style={styles.fila}>
+            <Text style={styles.filaLabel}>Método de pago</Text>
+            <Text style={styles.filaValor}>{ETIQUETAS_METODO_PAGO[metodoPago] ?? metodoPago}</Text>
+          </View>
+          <View style={styles.fila}>
+            <Text style={styles.filaLabel}>Fecha</Text>
+            <Text style={styles.filaValor}>{fecha}</Text>
+          </View>
         </View>
-      </View>
 
-      <TouchableOpacity style={styles.btn} onPress={verPedidos}>
-        <Text style={styles.btnText}>Ver mis pedidos</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.card}>
+          {items.map((item) => (
+            <View key={item.id_stock} style={styles.itemRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.itemNombre}>{item.nombre}</Text>
+                <Text style={styles.itemDetalle}>
+                  {item.color} / {item.talla} · x{item.cantidad}
+                </Text>
+              </View>
+              <Text style={styles.itemSubtotal}>${(item.precio * item.cantidad).toLocaleString()}</Text>
+            </View>
+          ))}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total pagado</Text>
+            <Text style={styles.totalValor}>${total.toLocaleString()}</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.btn} onPress={verPedidos}>
+          <Text style={styles.btnText}>Ver mis pedidos</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 

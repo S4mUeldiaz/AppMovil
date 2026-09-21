@@ -166,7 +166,7 @@ export function PerfilScreen() {
   if (!usuario) {
     return (
       <View style={styles.wrapper}>
-        <TopNavbar onAbrirMenu={abrir} titulo="Mi perfil" />
+        <TopNavbar onAbrirMenu={abrir} />
         <View style={styles.emptyState}>
           <Feather name="user" size={32} color={colors.textMuted} />
           <Text style={styles.emptyTitle}>Inicia sesión para ver tu perfil</Text>
@@ -181,7 +181,7 @@ export function PerfilScreen() {
 
   return (
     <View style={styles.wrapper}>
-      <TopNavbar onAbrirMenu={abrir} titulo="Mi perfil" />
+      <TopNavbar onAbrirMenu={abrir} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.avatar}>
           <TouchableOpacity
@@ -299,7 +299,7 @@ export function PerfilScreen() {
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
 
-        {/* ZONA DE PELIGRO — discreta, no un botón prominente */}
+        {/* ZONA DE PELIGRO*/}
         <TouchableOpacity style={styles.eliminarLink} onPress={() => setModalEliminar(true)}>
           <Text style={styles.eliminarLinkText}>Eliminar mi cuenta</Text>
         </TouchableOpacity>
@@ -416,8 +416,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // colors.primary asume el tema Light (coincide con negro casi puro). Si se activa el tema Dark,
-  // primary pasa a blanco y este visor necesitará revisión.
+
   visorRoot: { flex: 1, backgroundColor: colors.primary },
   visorOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   visorImg: { width: '80%', aspectRatio: 1, borderRadius: radius.lg },
