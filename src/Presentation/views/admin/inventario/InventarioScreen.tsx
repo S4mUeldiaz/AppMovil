@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getStock, Stock } from '../../../../Data/sources/remote/api/StockApi';
 import { getCategorias, Categoria } from '../../../../Data/sources/remote/api/ProductosApi';
 import { AdminHeader } from '../../../components/AdminHeader';
+import { ExportarBoton } from '../../../components/ExportarBoton';
 import { colors, fonts, radius, spacing } from '../../../theme/AppTheme';
 
 type NivelFiltro = '' | 'disponible' | 'bajo' | 'agotado';
@@ -65,6 +66,25 @@ export function AdminInventarioScreen() {
     return coincideBusqueda && coincideCategoria && coincideNivel;
   });
 
+  // Filas del reporte exportable: por variante (no agregadas por producto,
+  // a diferencia de Reportes.jsx en el web) — así respeta exactamente lo que
+  // el admin tenga filtrado en pantalla (categoría/nivel/búsqueda).
+  const COLUMNAS_EXPORT = ['Producto', 'Referencia', 'Color', 'Talla', 'Stock actual', 'Stock mínimo', 'Stock máximo', 'Estado', 'Valor'];
+  const filasExport = stockFiltrado.map((s) => {
+    const valorTotal = s.stock_actual * (s.productos?.precio ?? 0);
+    return [
+      s.productos?.nombre ?? '',
+      s.productos?.referencia ?? '',
+      s.color,
+      s.tallas?.talla ?? '',
+      s.stock_actual,
+      s.stock_minimo,
+      s.stock_maximo,
+      NIVEL_LABEL[s.estado] ?? s.estado,
+      valorTotal,
+    ];
+  });
+
   function renderItem({ item: s }: { item: Stock }) {
     const valorTotal = s.stock_actual * (s.productos?.precio ?? 0);
     return (
@@ -106,6 +126,15 @@ export function AdminInventarioScreen() {
   return (
     <View style={styles.wrapper}>
       <AdminHeader titulo="Inventario" />
+
+      <View style={styles.exportarRow}>
+        <ExportarBoton
+          titulo="Reporte de inventario"
+          nombreBase="inventario"
+          columnas={COLUMNAS_EXPORT}
+          filas={filasExport}
+        />
+      </View>
 
       <FlatList
         data={cargando ? [] : stockFiltrado}
@@ -201,6 +230,7 @@ export function AdminInventarioScreen() {
 
 const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: colors.background },
+  exportarRow: { paddingHorizontal: spacing.xl, marginBottom: spacing.md },
   resumenGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

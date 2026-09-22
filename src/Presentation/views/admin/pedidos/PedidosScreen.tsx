@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, Modal, StyleSheet, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -38,6 +38,7 @@ export function AdminPedidosScreen() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [cambiandoId, setCambiandoId] = useState<number | null>(null);
+  const [pedidoDetalle, setPedidoDetalle] = useState<PedidoAdmin | null>(null);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -86,6 +87,7 @@ export function AdminPedidosScreen() {
 
   function renderItem({ item: p }: { item: PedidoAdmin }) {
     const siguientes = ESTADOS_SIGUIENTES[p.estado_pedido] ?? [];
+    const cantidadItems = p.factura?.length ?? 0;
     return (
       <View style={styles.card}>
         <View style={styles.cardTop}>
@@ -105,7 +107,14 @@ export function AdminPedidosScreen() {
         </Text>
 
         <View style={styles.cardMeta}>
-          <Text style={styles.metaTexto}>{p.factura?.length ?? 0} producto(s)</Text>
+          <TouchableOpacity
+            style={styles.verDetalleBtn}
+            onPress={() => setPedidoDetalle(p)}
+            disabled={cantidadItems === 0}
+          >
+            <Text style={styles.metaTexto}>{cantidadItems} producto(s)</Text>
+            {cantidadItems > 0 && <Feather name="chevron-right" size={13} color={colors.textMuted} />}
+          </TouchableOpacity>
           <Text style={styles.metaTotal}>${Number(p.precio_total).toLocaleString()}</Text>
         </View>
         <Text style={styles.fecha}>{new Date(p.fecha_pedido).toLocaleDateString('es-CO')}</Text>
@@ -178,6 +187,49 @@ export function AdminPedidosScreen() {
           ) : null
         }
       />
+
+      {/* DETALLE DE PRODUCTOS DEL PEDIDO — mismo dato que ya trae getPedidos()
+          (factura[].stock.productos/color/tallas), antes sin usar en esta
+          pantalla; solo se mostraba la cantidad de ítems. */}
+      <Modal visible={!!pedidoDetalle} transparent animationType="fade" onRequestClose={() => setPedidoDetalle(null)}>
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setPedidoDetalle(null)} />
+
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitulo}>Pedido #{pedidoDetalle?.referencia}</Text>
+              <TouchableOpacity onPress={() => setPedidoDetalle(null)}>
+                <Feather name="x" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={pedidoDetalle?.factura ?? []}
+              keyExtractor={(item) => String(item.id_detalle)}
+              contentContainerStyle={styles.modalLista}
+              renderItem={({ item }) => (
+                <View style={styles.modalItem}>
+                  <View style={styles.modalItemInfo}>
+                    <Text style={styles.modalItemNombre} numberOfLines={2}>
+                      {item.stock?.productos?.nombre ?? 'Producto'}
+                    </Text>
+                    <Text style={styles.modalItemVariante}>
+                      {item.stock?.color}
+                      {item.stock?.color && item.stock?.tallas?.talla ? ' · ' : ''}
+                      {item.stock?.tallas?.talla ? `Talla ${item.stock.tallas.talla}` : ''}
+                      {' · '}Cant. {item.cantidad}
+                    </Text>
+                  </View>
+                  <View style={styles.modalItemPrecios}>
+                    <Text style={styles.modalItemUnitario}>${Number(item.precio_unitario).toLocaleString()} c/u</Text>
+                    <Text style={styles.modalItemSubtotal}>${Number(item.subtotal).toLocaleString()}</Text>
+                  </View>
+                </View>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -225,7 +277,8 @@ const styles = StyleSheet.create({
   badgeText: { fontFamily: fonts.bodySemiBold, fontSize: 10, letterSpacing: 0.5 },
   cliente: { color: colors.text, fontFamily: fonts.bodySemiBold, fontSize: 13 },
   correo: { color: colors.textMuted, fontFamily: fonts.body, fontSize: 12, marginBottom: spacing.sm },
-  cardMeta: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },
+  cardMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs },
+  verDetalleBtn: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   metaTexto: { color: colors.textMuted, fontFamily: fonts.body, fontSize: 12 },
   metaTotal: { color: colors.text, fontFamily: fonts.bodyBold, fontSize: 14 },
   fecha: { color: colors.textMuted, fontFamily: fonts.body, fontSize: 11, marginTop: 2 },
@@ -243,4 +296,35 @@ const styles = StyleSheet.create({
   accionBtnText: { color: colors.text, fontFamily: fonts.bodySemiBold, fontSize: 12 },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: spacing.md },
   emptyTexto: { color: colors.textMuted, fontFamily: fonts.body, fontSize: 14 },
+
+  modalOverlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.xl },
+  modalCard: {
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    maxHeight: '75%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.lg,
+  },
+  modalTitulo: { fontFamily: fonts.display, fontSize: 17, color: colors.text, flex: 1, marginRight: spacing.md },
+  modalLista: { gap: spacing.sm },
+  modalItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    backgroundColor: colors.backgroundInput,
+    borderRadius: radius.card,
+    padding: spacing.md,
+  },
+  modalItemInfo: { flex: 1 },
+  modalItemNombre: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.text },
+  modalItemVariante: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 2, textTransform: 'capitalize' },
+  modalItemPrecios: { alignItems: 'flex-end' },
+  modalItemUnitario: { fontFamily: fonts.body, fontSize: 11, color: colors.textMuted },
+  modalItemSubtotal: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.text, marginTop: 2 },
 });
