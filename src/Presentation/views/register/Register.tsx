@@ -19,6 +19,7 @@ import { BackButton } from '../../components/BackButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { registrar, RegistroPayload } from '../../../Data/sources/remote/api/Authapi';
 import { colors, fonts, spacing } from '../../theme/AppTheme';
+import { validarNumeroDocumento } from '../../utils/validarDocumento';
 
 type RegisterForm = RegistroPayload;
 
@@ -68,8 +69,12 @@ export function RegisterScreen() {
   async function handleSubmit() {
     setError('');
 
-    if (!/^\d+$/.test(form.numero_documento)) {
-      mostrarError('El número de documento solo puede contener números');
+    const validacionDocumento = validarNumeroDocumento(
+      form.numero_documento,
+      form.id_tipo_documento
+    );
+    if (!validacionDocumento.valido) {
+      mostrarError(validacionDocumento.mensaje);
       return;
     }
     if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(form.nombre)) {
@@ -160,7 +165,8 @@ export function RegisterScreen() {
                 onChangeText={(v) => handleChange('numero_documento', v)}
                 placeholder="0000000000"
                 placeholderTextColor={colors.textMuted}
-                keyboardType="number-pad"
+                keyboardType={form.id_tipo_documento === 4 ? 'default' : 'number-pad'}
+                autoCapitalize="characters"
               />
             </View>
           </View>
