@@ -9,7 +9,7 @@ if (!API_URL) {
 }
 
 const ApiDelivery = axios.create({
-    baseURL: API_URL ?? 'http://localhost:3001/api',
+    baseURL: API_URL ?? 'https://recorded-measuring-router-painting.trycloudflare.com/api',
     headers: {
         'Content-Type': 'application/json'
     }

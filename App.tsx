@@ -24,11 +24,6 @@ import { ComprobanteScreen } from './src/Presentation/views/comprobante/Comproba
 import { PedidosScreen } from './src/Presentation/views/pedidos/PedidosScreen';
 
 
-// HomeScreen, CatalogoScreen, CarritoScreen, FavoritosScreen y PerfilScreen ahora
-// viven dentro de TabNavigator (bottom tabs), y Usuarios/Pedidos/Inventario admin
-// dentro de AdminNavigator. Se mantienen como tipos aquí porque el resto de la app
-// navega hacia ellas por nombre: React Navigation resuelve automáticamente screens
-// con nombre único dentro de navegadores anidados.
 export type RootStackParamList = {
   MainTabs: undefined;
   AdminTabs: undefined;

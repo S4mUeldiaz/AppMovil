@@ -36,8 +36,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_GAP = 12;
 const CARD_WIDTH = (SCREEN_WIDTH - 24 * 2 - CARD_GAP) / 2;
 
-// Tratamiento editorial compartido por el hero y el banner "Colección 2026":
-// foto + degradado a overlayStrong + texto en onPrimary.
+
 const DEGRADADO_EDITORIAL = {
   colors: ['transparent', colors.overlayStrong] as const,
   locations: [0.35, 1] as const,
